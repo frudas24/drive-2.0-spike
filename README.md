@@ -53,4 +53,5 @@ discovery notes
 * apparently auth was superseeded by auth2
   * seems to require scopes to be comma separated
   * no immediate/non-immediate option in the api docs
+  * [a comment on SO](http://stackoverflow.com/questions/22086301/gapi-auth-signout-not-working-im-lost) suggests logout does not work from localhost
 * client.js superseeded by platform.js?

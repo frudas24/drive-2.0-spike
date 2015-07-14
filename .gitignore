@@ -1,0 +1,13 @@
+*.gem
+*.rbc
+.bundle
+.config
+.env
+.sublime*
+.DS_Store
+compiled
+downloads
+#grunt and jasmine artificats
+node_modules/
+SpecRunner.html
+.grunt

@@ -48,9 +48,7 @@
         setStatus('sign-out failed');
         updateUserProfile();
     };
-    googleAuthInstance.disconnect().then(function () {
-      googleAuthInstance.signOut().then(updateUserProfile, logoutFailed); 
-    }, logoutFailed);
+    googleAuthInstance.signOut().then(updateUserProfile, logoutFailed); 
   });
   document.getElementById('switch-user').addEventListener('click', function() {
     var logoutFailed = function () {

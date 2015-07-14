@@ -10,6 +10,7 @@
   Name: <span id="user-name"></span>
     Email: <span id="user-email" ></span>
   <button id="logout">Log Out</button>
+  <button id="switch-user">Switch User</button>
 </div>
 <div id="no-user" style="display:none">
   <h2>Not logged in.</h2>
@@ -42,13 +43,24 @@
         updateUserProfile();
       });
   });
-document.getElementById('logout').addEventListener('click', function() {
+  document.getElementById('logout').addEventListener('click', function() {
     var logoutFailed = function () {
         setStatus('sign-out failed');
         updateUserProfile();
     };
     googleAuthInstance.disconnect().then(function () {
       googleAuthInstance.signOut().then(updateUserProfile, logoutFailed); 
+    }, logoutFailed);
+  });
+  document.getElementById('switch-user').addEventListener('click', function() {
+    var logoutFailed = function () {
+        setStatus('sign-out failed');
+        updateUserProfile();
+    };
+    googleAuthInstance.disconnect().then(function () {
+      googleAuthInstance.signOut().then(function () { 
+        googleAuthInstance.signIn().then(updateUserProfile, logoutFailed);
+      }, logoutFailed); 
     }, logoutFailed);
   });
   window.initGoogleAPI = function () {

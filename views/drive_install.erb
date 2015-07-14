@@ -42,11 +42,14 @@
         updateUserProfile();
       });
   });
-  document.getElementById('logout').addEventListener('click', function() {
-      googleAuthInstance.signOut().then(updateUserProfile, function () {
+document.getElementById('logout').addEventListener('click', function() {
+    var logoutFailed = function () {
         setStatus('sign-out failed');
         updateUserProfile();
-      });
+    };
+    googleAuthInstance.disconnect().then(function () {
+      googleAuthInstance.signOut().then(updateUserProfile, logoutFailed); 
+    }, logoutFailed);
   });
   window.initGoogleAPI = function () {
     if (!gapi.auth2) {

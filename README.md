@@ -54,4 +54,6 @@ discovery notes
   * seems to require scopes to be comma separated
   * no immediate/non-immediate option in the api docs
   * [a comment on SO](http://stackoverflow.com/questions/22086301/gapi-auth-signout-not-working-im-lost) suggests logout does not work from localhost
+  * if several accounts are logged in at the moment, this shows a dialog to select. If a single is logged on, no dialog is shown even after log-out
+  * disconnect seems to work to force a dialog - but will this also get people to lose the app in the 'new' menu on drive? - how does it behave for GAM?
 * client.js superseeded by platform.js?

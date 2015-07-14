@@ -1,1 +1,62 @@
 <h1>Drive/Install</h1>
+<span id="status">
+  Initialising...
+</span>
+
+
+
+<div id="user-profile" style="display:none">
+  <h2>Logged in</h2>
+  Name: <span id="user-name"></span>
+    Email: <span id="user-email" ></span>
+  <button id="logout">Log Out</button>
+</div>
+<div id="no-user" style="display:none">
+  <h2>Not logged in.</h2>
+  <button id="login">Log In</button>
+</div>
+
+
+<script>
+  var setStatus = function (statusMsg) {
+    document.getElementById('status').innerHTML=statusMsg;
+  },
+  googleAuthInstance,
+  updateUserProfile = function () {
+    if (googleAuthInstance.isSignedIn.get()) {
+      document.getElementById('user-profile').style.display = '';
+      document.getElementById('no-user').style.display = 'none';
+      var currentUser = googleAuthInstance.currentUser.get().getBasicProfile();
+      document.getElementById('user-name').innerHTML = currentUser.getName();
+      document.getElementById('user-email').innerHTML = currentUser.getEmail() ;
+    } else {
+      document.getElementById('user-profile').style.display = 'none';
+      document.getElementById('no-user').style.display = '';
+      document.getElementById('user-name').innerHTML = '';
+      document.getElementById('user-email').innerHTML = '';
+    }
+  };
+  document.getElementById('login').addEventListener('click', function() {
+      googleAuthInstance.signIn().then(updateUserProfile, function () {
+        setStatus('login failed');
+        updateUserProfile();
+      });
+  });
+  document.getElementById('logout').addEventListener('click', function() {
+      googleAuthInstance.signOut().then(updateUserProfile, function () {
+        setStatus('sign-out failed');
+        updateUserProfile();
+      });
+  });
+  window.initGoogleAPI = function () {
+    if (!gapi.auth2) {
+      setStatus('loading google API auth2');
+      gapi.load('auth2', initGoogleAPI);
+      return;
+    } 
+    googleAuthInstance = gapi.auth2.init({client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', scope: 'https://www.googleapis.com/auth/drive.install'})
+    updateUserProfile();
+    setStatus('ready');
+  };
+</script>
+<script src="https://apis.google.com/js/platform.js?onload=initGoogleAPI" async defer></script>

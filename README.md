@@ -4,9 +4,15 @@ MindMup 2.0 Drive Spike
 Questions to explore:
 
 * can a user logged in to multiple accounts work seamlessly? 
+  * which auth library do we use from now on?
+    * Seems to be [a new API for auth](https://developers.google.com/identity/sign-in/web/reference#gapiauth2initwzxhzdk19paramswzxhzdk20) 
+      * doesn't have immediate/non immediate -- how do we deal with that?
+    * [gapi.auth.signin](https://developers.google.com/identity/sign-in/web/sign-in) claims to support multiple accounts and a selector
   * switch between accounts
   * right file loaded via drive web site
   * show currently selected account
+* can we handle API load errors gracefully? 
+  * eg timeout and show a sensible message
 * can we detect third-party extensions blocking access to drive and offer some more meaningful error messages?
   * disconnect
   * ABP
@@ -40,3 +46,11 @@ Questions to explore:
     * eg not ask for photo access unless users try to embed photos
 * can we automate some kind of integration tests to protect against API changes?
 
+
+
+discovery notes
+---------------
+* apparently auth was superseeded by auth2
+  * seems to require scopes to be comma separated
+  * no immediate/non-immediate option in the api docs
+* client.js superseeded by platform.js?

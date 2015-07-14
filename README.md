@@ -38,3 +38,5 @@ Questions to explore:
 * what is the absolute minimum scope for drive api authorisation that we need to use for GAM?
   * can we progressively build up with messages for individual usage patterns if not GAM?
     * eg not ask for photo access unless users try to embed photos
+* can we automate some kind of integration tests to protect against API changes?
+

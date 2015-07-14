@@ -13,6 +13,9 @@ end
 get '/drive/install' do
   erb :drive_install
 end
+get '/drive/post_install' do
+  erb :drive_post_install
+end
 get '/drive/new' do
   erb :drive_new
 end

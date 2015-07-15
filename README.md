@@ -56,10 +56,13 @@ Questions to explore:
 
 discovery notes
 ---------------
+
+* client.js superseeded by platform.js?
 * apparently auth was superseeded by auth2
   * seems to require scopes to be comma separated
   * no immediate/non-immediate option in the api docs
   * [a comment on SO](http://stackoverflow.com/questions/22086301/gapi-auth-signout-not-working-im-lost) suggests logout does not work from localhost
   * if several accounts are logged in at the moment, this shows a dialog to select. If a single is logged on, no dialog is shown even after log-out
   * disconnect seems to work to force a dialog - but will this also get people to lose the app in the 'new' menu on drive? - how does it behave for GAM?
-* client.js superseeded by platform.js?
+* when drive.file access is requested by the app, then the OAUTH2 dialog still shows a permissions page asking for offline access??? if the drive.file is not asked by the app, then a much more sensible error message shows - can we work on this only?
+  * ['generally we do not recommend drive-initiated authorization'](https://developers.google.com/drive/web/auth/drive-initiated-auth)

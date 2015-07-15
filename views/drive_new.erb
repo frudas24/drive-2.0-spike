@@ -1,1 +1,19 @@
 <h1>Drive/New</h1>
+<span id="status">
+  Initialising...
+</span>
+
+<script>
+
+var queryStringParams = window.location.search.substr(1).split('&').reduce(
+  function (memo, component) {
+    var kvp = component.split('=').map(decodeURIComponent); 
+    memo[kvp[0]]=kvp[1];
+    return memo;
+  }, {}
+),
+driveState = JSON.parse(queryStringParams.state).folderId;
+if (driveState.action === 'create') {
+  document.getElementById('status').innerHTML=' creating a file in folder ' + driveState.folderId + ' for user ' + driveState.userId  ;
+}
+</script>

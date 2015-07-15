@@ -55,11 +55,10 @@
         setStatus('sign-out failed');
         updateUserProfile();
     };
-    googleAuthInstance.disconnect().then(function () {
-      googleAuthInstance.signOut().then(function () { 
-        googleAuthInstance.signIn().then(updateUserProfile, logoutFailed);
-      }, logoutFailed); 
-    }, logoutFailed);
+    googleAuthInstance.disconnect();
+    googleAuthInstance.signOut().then(function () { 
+      googleAuthInstance.signIn().then(updateUserProfile, logoutFailed);
+    }, logoutFailed); 
   });
   window.initGoogleAPI = function () {
     if (!gapi.auth2) {

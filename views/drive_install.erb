@@ -66,7 +66,7 @@
       gapi.load('auth2', initGoogleAPI);
       return;
     } 
-    googleAuthInstance = gapi.auth2.init({client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.install'})
+    googleAuthInstance = gapi.auth2.init({client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', scope: 'https://www.googleapis.com/auth/drive.install'})
     updateUserProfile();
     setStatus('ready');
   };

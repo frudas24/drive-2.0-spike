@@ -12,8 +12,10 @@ var queryStringParams = window.location.search.substr(1).split('&').reduce(
     return memo;
   }, {}
 ),
-driveState = JSON.parse(queryStringParams.state).folderId;
+driveState = JSON.parse(queryStringParams.state);
 if (driveState.action === 'create') {
   document.getElementById('status').innerHTML=' creating a file in folder ' + driveState.folderId + ' for user ' + driveState.userId  ;
+} else {
+  document.getElementById('status').innerHTML= ' unsupported action ' + driveState.action;
 }
 </script>

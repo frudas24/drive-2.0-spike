@@ -9,13 +9,15 @@ Questions to explore:
       * doesn't have immediate/non immediate -- how do we deal with that?
     * [gapi.auth.signin](https://developers.google.com/identity/sign-in/web/sign-in) claims to support multiple accounts and a selector
   * switch between accounts
-  * right file loaded via drive web site
   * show currently selected account
+* can we detect when the wrong user is logged in if a file is created/opened via drive? 
+  * state seems to contain the user id
 * can we handle API load errors gracefully? 
   * eg timeout and show a sensible message
 * can we detect third-party extensions blocking access to drive and offer some more meaningful error messages?
   * disconnect
   * ABP
+
 * can we offer a better experience using auto-saved drive realtime apps?
   * images stored on drive to avoid message size problems and remove capacity problems?
     * maybe use thumbmnails from the hangouts spike?
@@ -25,6 +27,7 @@ Questions to explore:
   * what happens with drive-stored resources?
     * images
     * attachments
+  * make sure exporting to local disk works by downloading images; make sure pdf/image exporters get resources 
 * can we replicate typical Docs API workflow?
   * loading/creating files from the Drive UI - to avoid access privilege issues
     * create in the right folder
@@ -32,11 +35,14 @@ Questions to explore:
   * keep the folder/s when saving
   * inherit sharing properties when created in a folder
   * sharing from within the app
+  * can we use a single page instead of redirects from /gd, and use pushState to replace history when a file is created etc?
+  * rename file from the app (don't force the name to be the same as central node)
+    * ensure name is preserved when saving
 * can we work in a meaningful way with completely public/read maps
   * ideally not ask clients to even log in
 * can we offer more meaningful drive integration
-  * attachments are files on drive
-  * images are photos from google drive photos
+  * attachments are files on drive?
+  * images are photos from google drive photos?
   * keep required auth to a minimum
 * can we offer admins more control over what is used if app is installed in a domain
   * disable/enable gold services globally

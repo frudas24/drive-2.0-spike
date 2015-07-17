@@ -1,0 +1,12 @@
+<script>
+  window.initGoogleAPI = function () {
+    if (!gapi.auth2) {
+      gapi.load('auth2,drive-realtime,drive-share', initGoogleAPI);
+      return;
+    } 
+    window.clearTimeout(googleScriptLoadingTimeout);
+    window.dispatchEvent(new Event('MM:GoogleScriptsLoaded'))
+  };
+window.googleScriptLoadingTimeout = window.setTimeout(window.dispatchEvent, <%=settings.script_loading_timeout%>, new Event('MM:GoogleScriptsFailed'));
+</script>
+<script src="https://apis.google.com/js/platform.js?onload=initGoogleAPI" async defer></script>

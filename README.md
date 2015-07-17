@@ -17,8 +17,6 @@ Questions to explore:
 * can we detect third-party extensions blocking access to drive and offer some more meaningful error messages?
   * disconnect
   * ABP
-
-* can we offer a better experience using auto-saved drive realtime apps?
   * images stored on drive to avoid message size problems and remove capacity problems?
     * maybe use thumbmnails from the hangouts spike?
     * how does this work with exporters? can we grab them locally via CORS?
@@ -66,3 +64,5 @@ discovery notes
   * disconnect seems to work to force a dialog - but will this also get people to lose the app in the 'new' menu on drive? - how does it behave for GAM?
 * when drive.file access is requested by the app, then the OAUTH2 dialog still shows a permissions page asking for offline access??? if the drive.file is not asked by the app, then a much more sensible error message shows - can we work on this only?
   * ['generally we do not recommend drive-initiated authorization'](https://developers.google.com/drive/web/auth/drive-initiated-auth)
+* there is a new drive-share API. What does it do?
+* how to we refresh tokens using auth2?

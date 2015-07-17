@@ -60,15 +60,17 @@
       googleAuthInstance.signIn().then(updateUserProfile, logoutFailed);
     }, logoutFailed); 
   });
-  window.initGoogleAPI = function () {
-    if (!gapi.auth2) {
-      setStatus('loading google API auth2');
-      gapi.load('auth2', initGoogleAPI);
-      return;
-    } 
+
+  window.addEventListener('MM:GoogleScriptsFailed', function () {
+    setStatus('Sadly, Google Script Loading failed!');
+  });
+
+  window.addEventListener('MM:GoogleScriptsLoaded', function () {
     googleAuthInstance = gapi.auth2.init({client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', scope: 'https://www.googleapis.com/auth/drive.install'})
     updateUserProfile();
-    setStatus('ready');
-  };
+    setStatus('Scripts loaded... Ready for action');
+  });
+
+
 </script>
-<script src="https://apis.google.com/js/platform.js?onload=initGoogleAPI" async defer></script>
+<%= erb :google_load_scripts %>

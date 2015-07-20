@@ -55,14 +55,31 @@ Questions to explore:
 discovery notes
 ---------------
 
-* client.js superseeded by platform.js?
+## API
+
+* there is a new drive-share API. What does it do?
+
+## Authemticating
+
+
+* client.js superseeded by platform.js - seems to do the same things, re loading APIs. What is the key difference?
+  * seems to be a subset - perhaps loads faster? 
+    * almost 100K less. (6 requests vs 11 requests, 138K vs 239K transferred to load scripts) 
 * apparently auth was superseeded by auth2
-  * seems to require scopes to be comma separated
+  * ~~seems to require scopes to be comma separated~~ docs say, but API works with spaces
   * no immediate/non-immediate option in the api docs
   * [a comment on SO](http://stackoverflow.com/questions/22086301/gapi-auth-signout-not-working-im-lost) suggests logout does not work from localhost
   * if several accounts are logged in at the moment, this shows a dialog to select. If a single is logged on, no dialog is shown even after log-out
   * disconnect seems to work to force a dialog - but will this also get people to lose the app in the 'new' menu on drive? - how does it behave for GAM?
 * when drive.file access is requested by the app, then the OAUTH2 dialog still shows a permissions page asking for offline access??? if the drive.file is not asked by the app, then a much more sensible error message shows - can we work on this only?
   * ['generally we do not recommend drive-initiated authorization'](https://developers.google.com/drive/web/auth/drive-initiated-auth)
-* there is a new drive-share API. What does it do?
 * how to we refresh tokens using auth2?
+
+## creating files on drive for realtime access only
+
+* Mime type should be application/vnd.google-apps.drive-sdk, no content uploaded
+* User ID and folder ID given by Drive. But what should we do if the user does not match the selected one? Can we offer people a sensible error message
+
+## Testing options
+
+* Drive.realtime setServerAddress suggests it's possible to switch between production, sandbox etc environments. See lines 214-228 of [realtime-utils](https://github.com/googledrive/realtime-utils/blob/master/realtime-client-utils.js) on github

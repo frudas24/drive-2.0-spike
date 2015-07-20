@@ -5,17 +5,88 @@
 
 <script>
 
-var queryStringParams = window.location.search.substr(1).split('&').reduce(
-  function (memo, component) {
-    var kvp = component.split('=').map(decodeURIComponent); 
-    memo[kvp[0]]=kvp[1];
-    return memo;
-  }, {}
-),
-driveState = JSON.parse(queryStringParams.state);
-if (driveState.action === 'create') {
-  document.getElementById('status').innerHTML=' creating a file in folder ' + driveState.folderId + ' for user ' + driveState.userId  ;
-} else {
-  document.getElementById('status').innerHTML= ' unsupported action ' + driveState.action;
-}
+
+
+
+var setStatus = function (statusMsg) {
+    document.getElementById('status').innerHTML=statusMsg;
+  },
+  mimeType= 'application/vnd.google-apps.drive-sdk',
+  baseServiceURL= 'https://www.googleapis.com/upload/drive/v2/files',
+  defaultTitle = 'New untitled mind map',
+  googleAuthInstance,
+  queryStringParams = window.location.search.substr(1).split('&').reduce(
+    function (memo, component) {
+      var kvp = component.split('=').map(decodeURIComponent); 
+      memo[kvp[0]]=kvp[1];
+      return memo;
+    }, {}
+  ),
+  driveState = JSON.parse(queryStringParams.state),
+  createShortcut = function (authToken, title, folderId) {
+    var promise = jQuery.Deferred(),
+        boundary = '--multipart-boundary--'
+	      delimiter = '\r\n--' + boundary + '\r\n',
+				closeDelim = '\r\n--' + boundary + '--',
+				metadata = {
+					'title': title,
+          'mimeType': mimeType, 
+          'parents': folderId && [{id: folderId}]
+				},
+				multipartRequestBody =
+					delimiter +
+					'Content-Type: application/json\r\n\r\n' +
+					JSON.stringify(metadata) +
+					closeDelim;
+    jQuery.ajax({
+      type: 'POST',
+      url: baseServiceURL + '?uploadType=multipart',
+      headers: {
+        'Authorization': 'Bearer ' + authToken,
+        'Content-Type': 'multipart/related; boundary="'+boundary+'"',
+      },
+      data: multipartRequestBody,
+      dataType: 'json'
+    }).then(function (result) {
+      promise.resolve(result.id);
+    }, function (jqXHR, textStatus, errorThrown) {
+      promise.reject(textStatus, errorThrown);
+    });
+    return promise.promise();
+  };
+
+window.addEventListener('MM:GoogleScriptsFailed', function () {
+  setStatus('Sadly, Google Script Loading failed!');
+});
+
+window.addEventListener('MM:GoogleScriptsLoaded', function () {
+  if (!window.jQuery) {
+    setStatus('Sadly, Vendor Script Loading failed!');
+
+  }
+  googleAuthInstance = gapi.auth2.init({client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', scope: 'https://www.googleapis.com/auth/drive.install https://www.googleapis.com/auth/drive.file'})
+  setStatus('signing in');
+  googleAuthInstance.signIn().then(function () {
+    var authResponse = googleAuthInstance.currentUser.get().getAuthResponse();
+    if (!authResponse || !authResponse.access_token) {
+      setStatus('Cannot retrieve token'); 
+    } else {
+      if (driveState.action === 'create') {
+        setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + driveState.userId);
+        createShortcut(authResponse.access_token, defaultTitle, driveState.folderId).then(function (id) { 
+          setStatus('File shortcut created: ' + id);
+        }, function (textStatus, errorThrown) {
+          setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
+        });
+      } else {
+        setStatus('unsupported action ' + driveState.action);
+      }
+    }
+  }, function () {
+    setStatus('login failed');
+  });
+});
+
 </script>
+<%= erb :google_load_scripts %>
+<%= erb :vendor_scripts %>

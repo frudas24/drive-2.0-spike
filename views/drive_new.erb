@@ -93,6 +93,7 @@ var setStatus = function (statusMsg) {
           setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + userProfile.email);
           createShortcut(token, defaultTitle, driveState.folderId).then(function (id) { 
             setStatus('File shortcut created: ' + id);
+            window.history.replaceState({},defaultTitle, '/drive/file/' + id);
           }, function (textStatus, errorThrown) {
             setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
           });

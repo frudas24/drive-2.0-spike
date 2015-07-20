@@ -13,7 +13,7 @@ var setStatus = function (statusMsg) {
     document.getElementById('status').innerHTML=statusMsg;
   },
   defaultTitle = 'all new untitled mind map',
-  fileId = '<%=fileid%>',
+  fileId = '<%= @fileid%>',
   initialContent = {id: 1, title: defaultTitle},
   queryStringParams = window.location.search.substr(1).split('&').reduce(
     function (memo, component) {
@@ -52,26 +52,37 @@ var setStatus = function (statusMsg) {
     model.getRoot().set('events', model.createList());
     model.getRoot().set('focusNodes', model.createMap());
     model.getRoot().set('initialContent', JSON.stringify(initialContent));
-  },
+	},
+	openFile = function (token, fileId) {
+		googleDriveService.getMetaData(token, fileId).then(function(fileMeta) {
+			/** TODO: check mime type, recognise if importing required **/
+			window.history.replaceState({}, fileMeta.title, '/drive/file/' + fileId);
+			document.title = fileMeta.title;
+			gapi.drive.realtime.load(fileId, onFileLoaded, initializeModel, onRealtimeLoadError);
+		}, function (jqXHR, errorText, errorRaised) {
+			setStatus('Sadly, loading file meta-data failed ' + errorText);
+			/** TODO: Handle errors gracefully */
+		});
+	},
   postLogin = function(userProfile) {
     if (driveState.action === 'create') {
       setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + userProfile.getEmail());
       googleDriveService.createShortcut(userProfile.getAuthToken(), defaultTitle, driveState.folderId).then(function (id) { 
         setStatus('File shortcut created: ' + id + ' for user ' + userProfile.getEmail());
-        window.history.replaceState({},defaultTitle, '/drive/file/' + id);
+				document.title= defaultTitle;
+        window.history.replaceState({}, defaultTitle, '/drive/file/' + id);
         gapi.drive.realtime.load(id, onFileLoaded, initializeModel, onRealtimeLoadError);
       }, function (textStatus, errorThrown) {
         setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
       });
     } else if (driveState.action === 'open') {
       if (driveState.ids && driveState.ids[0]) {
-        window.history.replaceState({}, '', '/drive/file/' + driveState.ids[0]);
-        gapi.drive.realtime.load(driveState.ids[0], onFileLoaded, initializeModel, onRealtimeLoadError);
+				openFile(userProfile.getAuthToken(), driveState.ids[0]);
       } else {
         setStatus('Sadly, no ID specified in the request');
       }
     } else if (fileId) {
-        gapi.drive.realtime.load(fileId, onFileLoaded, initializeModel, onRealtimeLoadError);
+				openFile(userProfile.getAuthToken(), fileId);
     } else {
       setStatus('unsupported action');
     }

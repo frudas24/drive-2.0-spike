@@ -2,8 +2,17 @@
 MM2.GoogleDriveService = function () {
 	'use strict';
 	var self = this,
-			shortcutMimeType = 'application/vnd.google-apps.drive-sdk',
-			baseServiceURL = 'https://www.googleapis.com/upload/drive/v2/files';
+			shortcutMimeType = 'application/vnd.google-apps.drive-sdk';
+	self.getMetaData = function (authToken, fileId) {
+		return jQuery.ajax({
+			type: 'GET',
+			url: 'https://www.googleapis.com/drive/v2/files/' + fileId,
+			headers: {
+				'Authorization': 'Bearer ' + authToken
+			},
+			dataType: 'json'
+		});
+	};
 	self.createShortcut = function (authToken, title, folderId) {
 		var promise = jQuery.Deferred(),
 				boundary = '--multipart-boundary--',
@@ -21,7 +30,7 @@ MM2.GoogleDriveService = function () {
 					closeDelim;
 		jQuery.ajax({
 			type: 'POST',
-			url: baseServiceURL + '?uploadType=multipart',
+			url: 'https://www.googleapis.com/upload/drive/v2/files?uploadType=multipart',
 			headers: {
 				'Authorization': 'Bearer ' + authToken,
 				'Content-Type': 'multipart/related; boundary="' + boundary + '"'

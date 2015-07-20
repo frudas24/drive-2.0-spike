@@ -2,24 +2,19 @@
 <span id="status">
   Initialising...
 </span>
-
 <div id="manual-login" style="display:none">
   Could not log in automatically. Please <button id="login">Sign In With Google</button>
 </div>
-
+<%= erb :vendor_scripts %>
+<%= erb :own_scripts %>
 
 <script>
-
-
-
-
 var setStatus = function (statusMsg) {
     document.getElementById('status').innerHTML=statusMsg;
   },
   mimeType= 'application/vnd.google-apps.drive-sdk',
   baseServiceURL= 'https://www.googleapis.com/upload/drive/v2/files',
   defaultTitle = 'all new untitled mind map',
-  googleAuthInstance,
   queryStringParams = window.location.search.substr(1).split('&').reduce(
     function (memo, component) {
       var kvp = component.split('=').map(decodeURIComponent); 
@@ -28,29 +23,11 @@ var setStatus = function (statusMsg) {
     }, {}
   ),
   driveState = JSON.parse(queryStringParams.state),
-  authenticate = function (options) {
-   var defaultOptions = {
+  authenticator = new MM2.GoogleAuthenticatorService({
       client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', 
       scope: '<%=settings.startup_drive_scopes%>',
       'cookie_policy': 'single_host_origin'
-   },
-   fullOptions = _.extend(defaultOptions, options),
-   promise = jQuery.Deferred();
-   gapi.auth.authorize(fullOptions, function (result) {
-     if (result.access_token && !result.error) {
-        promise.resolve(result.access_token);
-      } else {
-        promise.reject(result.error)
-      }
-   }); 
-   return promise.promise();
-  },
-  getUserProfile = function (token) {
-    return jQuery.ajax({url:'https://www.googleapis.com/oauth2/v2/userinfo', 
-      dataType: 'json',
-      headers:{'Authorization': 'Bearer ' + token}
-    });
-  },
+  }),
   createShortcut = function (authToken, title, folderId) {
     var promise = jQuery.Deferred(),
         boundary = '--multipart-boundary--'
@@ -82,26 +59,18 @@ var setStatus = function (statusMsg) {
     });
     return promise.promise();
   },
-  postLogin = function(token) {
-    getUserProfile(token).then(function (userProfile) {
-      if (userProfile.id !== driveState.userId) {
-        setStatus('User mismatch. Google Drive requested user id ' + driveState.userId + ' but we got ' + userProfile.id);
-        gapi.auth.setToken(null);
-        $('#manual-login').show();  
-      } else {
-        if (driveState.action === 'create') {
-          setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + userProfile.email);
-          createShortcut(token, defaultTitle, driveState.folderId).then(function (id) { 
-            setStatus('File shortcut created: ' + id);
-            window.history.replaceState({},defaultTitle, '/drive/file/' + id);
-          }, function (textStatus, errorThrown) {
-            setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
-          });
-        } else {
-          setStatus('unsupported action ' + driveState.action);
-        }
-      }
-    });
+  postLogin = function(userProfile) {
+    if (driveState.action === 'create') {
+      setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + userProfile.getEmail());
+      createShortcut(userProfile.getAuthToken(), defaultTitle, driveState.folderId).then(function (id) { 
+        setStatus('File shortcut created: ' + id + ' for user ' + userProfile.getEmail());
+        window.history.replaceState({},defaultTitle, '/drive/file/' + id);
+      }, function (textStatus, errorThrown) {
+        setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
+      });
+    } else {
+      setStatus('unsupported action ' + driveState.action);
+    }
   };
 
 window.addEventListener('MM:GoogleScriptsFailed', function () {
@@ -116,13 +85,13 @@ window.addEventListener('MM:GoogleScriptsLoaded', function () {
     setStatus('invalid drive status request - no user id specified'); 
   }
   setStatus('signing in');
-  authenticate({'login_hint': driveState.userId, immediate: true}).then(postLogin, function () {
+  authenticator.backgroundAuthenticate(driveState.userId).then(postLogin, function () {
     $('#manual-login').show();  
   });
   $('#login').on('click', function (token) {
-    authenticate({'login_hint': driveState.userId, immediate: false, authuser: -1}).then(function (token) {
+    authenticator.modalAuthenticate(driveState.userId).then(function (profile) {
       $('#manual-login').hide();  
-      postLogin(token); 
+      postLogin(profile); 
     }, function () {
       setStatus('Sadly, login failed'); 
     });
@@ -131,4 +100,4 @@ window.addEventListener('MM:GoogleScriptsLoaded', function () {
 
 </script>
 <%= erb :google_load_scripts %>
-<%= erb :vendor_scripts %>
+

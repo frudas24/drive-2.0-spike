@@ -7,7 +7,7 @@ configure do
   set :script_loading_timeout, ENV['SCRIPT_LOADING_TIMEOUT'] || 5000
   set :static_url, "#{asset_host}/#{static_ts}"  
   set :public_url, ENV['PUBLIC_URL'] || "/"
-  set :startup_drive_scopes, 'https://www.googleapis.com/auth/drive.install https://www.googleapis.com/auth/drive.file'
+  set :startup_drive_scopes, 'https://www.googleapis.com/auth/drive.install https://www.googleapis.com/auth/drive.file email profile'
 end
 get '/' do
   erb :map_editor

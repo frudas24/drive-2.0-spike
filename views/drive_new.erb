@@ -3,6 +3,11 @@
   Initialising...
 </span>
 
+<div id="manual-login" style="display:none">
+  Could not log in automatically. Please <button id="login">Sign In With Google</button>
+</div>
+
+
 <script>
 
 
@@ -13,7 +18,7 @@ var setStatus = function (statusMsg) {
   },
   mimeType= 'application/vnd.google-apps.drive-sdk',
   baseServiceURL= 'https://www.googleapis.com/upload/drive/v2/files',
-  defaultTitle = 'New untitled mind map',
+  defaultTitle = 'all new untitled mind map',
   googleAuthInstance,
   queryStringParams = window.location.search.substr(1).split('&').reduce(
     function (memo, component) {
@@ -23,6 +28,29 @@ var setStatus = function (statusMsg) {
     }, {}
   ),
   driveState = JSON.parse(queryStringParams.state),
+  authenticate = function (options) {
+   var defaultOptions = {
+      client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', 
+      scope: '<%=settings.startup_drive_scopes%>',
+      'cookie_policy': 'single_host_origin'
+   },
+   fullOptions = _.extend(defaultOptions, options),
+   promise = jQuery.Deferred();
+   gapi.auth.authorize(fullOptions, function (result) {
+     if (result.access_token && !result.error) {
+        promise.resolve(result.access_token);
+      } else {
+        promise.reject(result.error)
+      }
+   }); 
+   return promise.promise();
+  },
+  getUserProfile = function (token) {
+    return jQuery.ajax({url:'https://www.googleapis.com/oauth2/v2/userinfo', 
+      dataType: 'json',
+      headers:{'Authorization': 'Bearer ' + token}
+    });
+  },
   createShortcut = function (authToken, title, folderId) {
     var promise = jQuery.Deferred(),
         boundary = '--multipart-boundary--'
@@ -53,6 +81,26 @@ var setStatus = function (statusMsg) {
       promise.reject(textStatus, errorThrown);
     });
     return promise.promise();
+  },
+  postLogin = function(token) {
+    getUserProfile(token).then(function (userProfile) {
+      if (userProfile.id !== driveState.userId) {
+        setStatus('User mismatch. Google Drive requested user id ' + driveState.userId + ' but we got ' + userProfile.id);
+        gapi.auth.setToken(null);
+        $('#manual-login').show();  
+      } else {
+        if (driveState.action === 'create') {
+          setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + userProfile.email);
+          createShortcut(token, defaultTitle, driveState.folderId).then(function (id) { 
+            setStatus('File shortcut created: ' + id);
+          }, function (textStatus, errorThrown) {
+            setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
+          });
+        } else {
+          setStatus('unsupported action ' + driveState.action);
+        }
+      }
+    });
   };
 
 window.addEventListener('MM:GoogleScriptsFailed', function () {
@@ -62,28 +110,21 @@ window.addEventListener('MM:GoogleScriptsFailed', function () {
 window.addEventListener('MM:GoogleScriptsLoaded', function () {
   if (!window.jQuery) {
     setStatus('Sadly, Vendor Script Loading failed!');
-
   }
-  googleAuthInstance = gapi.auth2.init({client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', scope: 'https://www.googleapis.com/auth/drive.install https://www.googleapis.com/auth/drive.file'})
+  if (!driveState || !driveState.userId) {
+    setStatus('invalid drive status request - no user id specified'); 
+  }
   setStatus('signing in');
-  googleAuthInstance.signIn().then(function () {
-    var authResponse = googleAuthInstance.currentUser.get().getAuthResponse();
-    if (!authResponse || !authResponse.access_token) {
-      setStatus('Cannot retrieve token'); 
-    } else {
-      if (driveState.action === 'create') {
-        setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + driveState.userId);
-        createShortcut(authResponse.access_token, defaultTitle, driveState.folderId).then(function (id) { 
-          setStatus('File shortcut created: ' + id);
-        }, function (textStatus, errorThrown) {
-          setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
-        });
-      } else {
-        setStatus('unsupported action ' + driveState.action);
-      }
-    }
-  }, function () {
-    setStatus('login failed');
+  authenticate({'login_hint': driveState.userId, immediate: true}).then(postLogin, function () {
+    $('#manual-login').show();  
+  });
+  $('#login').on('click', function (token) {
+    authenticate({'login_hint': driveState.userId, immediate: false, authuser: -1}).then(function (token) {
+      $('#manual-login').hide();  
+      postLogin(token); 
+    }, function () {
+      setStatus('Sadly, login failed'); 
+    });
   });
 });
 

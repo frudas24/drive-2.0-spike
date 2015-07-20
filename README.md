@@ -3,17 +3,17 @@ MindMup 2.0 Drive Spike
 
 Questions to explore:
 
-* can a user logged in to multiple accounts work seamlessly? 
-  * which auth library do we use from now on?
+* ~~can a user logged in to multiple accounts work seamlessly?~~ 
+  * ~~which auth library do we use from now on?~~
     * Seems to be [a new API for auth](https://developers.google.com/identity/sign-in/web/reference#gapiauth2initwzxhzdk19paramswzxhzdk20) 
       * doesn't have immediate/non immediate -- how do we deal with that?
     * [gapi.auth.signin](https://developers.google.com/identity/sign-in/web/sign-in) claims to support multiple accounts and a selector
-  * switch between accounts
+  * ~~switch between accounts~~ almost: multiple users have to be logged in!
   * ~~show currently selected account~~
-* can we detect when the wrong user is logged in if a file is created/opened via drive? 
-  * state seems to contain the user id
-* can we handle API load errors gracefully? 
-  * eg timeout and show a sensible message
+* ~~can we detect when the wrong user is logged in if a file is created/opened via drive? ~~
+  * ~~state seems to contain the user id~~
+* ~~can we handle API load errors gracefully? ~~
+  * ~~eg timeout and show a sensible message~~
 * can we detect third-party extensions blocking access to drive and offer some more meaningful error messages?
   * disconnect
   * ABP

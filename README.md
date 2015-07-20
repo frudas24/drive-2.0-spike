@@ -14,13 +14,17 @@ Questions to explore:
   * ~~state seems to contain the user id~~
 * ~~can we handle API load errors gracefully?~~
   * ~~eg timeout and show a sensible message~~
-* can we detect third-party extensions blocking access to drive and offer some more meaningful error messages?
-  * disconnect
-  * ABP
-  * images stored on drive to avoid message size problems and remove capacity problems?
-    * maybe use thumbmnails from the hangouts spike?
-    * how does this work with exporters? can we grab them locally via CORS?
-  * total capacity warning when close to 10 MB?
+* can we enable people to self-service major support topics?
+  * ~~can we log in the correct user when file is opened from drive?~~
+  * can we detect third-party extensions blocking access to drive and offer some more meaningful error messages?
+    * disconnect
+    * ABP
+  * can we show a total capacity warning when close to 10 MB?
+    * can we compress somehow?
+  * can we store images on drive to avoid message size problems and remove capacity problems?
+      * maybe use thumbmnails from the hangouts spike?
+      * how does this work with exporters? can we grab them locally via CORS?
+  * can we forward people to a 'request access' page when they don't have access?
 * can we seamlessly migrate from physical map files to shortcuts for auto-saving?
   * what happens with drive-stored resources?
     * images
@@ -30,11 +34,10 @@ Questions to explore:
   * loading/creating files from the Drive UI - to avoid access privilege issues
     * ~~create in the right folder~~
   * enable moving to a folder from within the app
-  * enable renaming within the app
   * keep the folder/s when saving
   * inherit sharing properties when created in a folder
   * sharing from within the app
-  * can we use a single page instead of redirects from /gd, and use pushState to replace history when a file is created etc?
+  * ~~can we use a single page instead of redirects from /gd, and use pushState to replace history when a file is created etc?~~
   * rename file from the app (don't force the name to be the same as central node)
     * ensure name is preserved when saving
 * can we work in a meaningful way with completely public/read maps

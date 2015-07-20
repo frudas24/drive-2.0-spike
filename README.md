@@ -9,7 +9,7 @@ Questions to explore:
       * doesn't have immediate/non immediate -- how do we deal with that?
     * [gapi.auth.signin](https://developers.google.com/identity/sign-in/web/sign-in) claims to support multiple accounts and a selector
   * switch between accounts
-  * show currently selected account
+  * ~~show currently selected account~~
 * can we detect when the wrong user is logged in if a file is created/opened via drive? 
   * state seems to contain the user id
 * can we handle API load errors gracefully? 
@@ -28,8 +28,9 @@ Questions to explore:
   * make sure exporting to local disk works by downloading images; make sure pdf/image exporters get resources 
 * can we replicate typical Docs API workflow?
   * loading/creating files from the Drive UI - to avoid access privilege issues
-    * create in the right folder
+    * ~~create in the right folder~~
   * enable moving to a folder from within the app
+  * enable renaming within the app
   * keep the folder/s when saving
   * inherit sharing properties when created in a folder
   * sharing from within the app
@@ -61,16 +62,14 @@ discovery notes
 
 ## Authemticating
 
-
 * client.js superseeded by platform.js - seems to do the same things, re loading APIs. What is the key difference?
-  * seems to be a subset - perhaps loads faster? 
-    * almost 100K less. (6 requests vs 11 requests, 138K vs 239K transferred to load scripts) 
-* apparently auth was superseeded by auth2
-  * ~~seems to require scopes to be comma separated~~ docs say, but API works with spaces
-  * no immediate/non-immediate option in the api docs
+    * almost 80K more, compared to bare client
+* ~~apparently auth was superseeded by auth2~~
+  * not good enough for our use, intended for apps that have a mandatory button to sign people in. it does not support immediate/non-immediate access and does not allow us to set a login_hint. completely broken on safari if we try to do it without clicking on a button. However, it seems that the underlying implementation is done using auth, so auth now has some interesting arguments we can use
+  * login_hint: ID of the user we prefer to authorise, in case of multiple logged in. will force people to spin in the dialog until the right one is chosen
+  * authuser: -1 forces the user choice (switch user effectively) in case of multiple users logged in
+    * if several accounts are logged in at the moment, this shows a dialog to select. If a single is logged on, no dialog is shown even after log-out
   * [a comment on SO](http://stackoverflow.com/questions/22086301/gapi-auth-signout-not-working-im-lost) suggests logout does not work from localhost
-  * if several accounts are logged in at the moment, this shows a dialog to select. If a single is logged on, no dialog is shown even after log-out
-  * disconnect seems to work to force a dialog - but will this also get people to lose the app in the 'new' menu on drive? - how does it behave for GAM?
 * when drive.file access is requested by the app, then the OAUTH2 dialog still shows a permissions page asking for offline access??? if the drive.file is not asked by the app, then a much more sensible error message shows - can we work on this only?
   * ['generally we do not recommend drive-initiated authorization'](https://developers.google.com/drive/web/auth/drive-initiated-auth)
 * how to we refresh tokens using auth2?

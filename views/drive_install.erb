@@ -22,14 +22,25 @@
   var setStatus = function (statusMsg) {
     document.getElementById('status').innerHTML=statusMsg;
   },
-  googleAuthInstance,
-  updateUserProfile = function () {
-    if (googleAuthInstance.isSignedIn.get()) {
-      document.getElementById('user-profile').style.display = '';
-      document.getElementById('no-user').style.display = 'none';
-      var currentUser = googleAuthInstance.currentUser.get().getBasicProfile();
-      document.getElementById('user-name').innerHTML = currentUser.getName();
-      document.getElementById('user-email').innerHTML = currentUser.getEmail() ;
+  authOptions = {
+    client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', 
+    scope: '<%=settings.startup_drive_scopes%>',
+    'cookie_policy': 'single_host_origin'
+  },
+  updateUserProfile = function (result) {
+    if (result && result.access_token) {
+      jQuery.ajax({url:'https://www.googleapis.com/oauth2/v2/userinfo', 
+          dataType: 'json',
+          headers:{'Authorization': 'Bearer ' + result.access_token}
+      }).then(function (result) {
+          document.getElementById('user-profile').style.display = '';
+          document.getElementById('no-user').style.display = 'none';
+          setStatus('logged in as user ID :' + result.id);
+          document.getElementById('user-name').innerHTML = result.name;
+          document.getElementById('user-email').innerHTML = result.email;
+      }, function (jqXHR, responseText, errorThrown) {
+          setStatus('Sadly, profile fetch failed ', responseText);
+      });
     } else {
       document.getElementById('user-profile').style.display = 'none';
       document.getElementById('no-user').style.display = '';
@@ -38,27 +49,15 @@
     }
   };
   document.getElementById('login').addEventListener('click', function() {
-      googleAuthInstance.signIn().then(updateUserProfile, function () {
-        setStatus('login failed');
-        updateUserProfile();
-      });
+      gapi.auth.authorize(_.extend({}, authOptions, {immediate: false}), updateUserProfile);
   });
   document.getElementById('logout').addEventListener('click', function() {
-    var logoutFailed = function () {
-        setStatus('sign-out failed');
-        updateUserProfile();
-    };
-    googleAuthInstance.signOut().then(updateUserProfile, logoutFailed); 
+    gapi.auth.setToken(null);
+    updateUserProfile(); 
   });
   document.getElementById('switch-user').addEventListener('click', function() {
-    var logoutFailed = function () {
-        setStatus('sign-out failed');
-        updateUserProfile();
-    };
-    googleAuthInstance.disconnect();
-    googleAuthInstance.signOut().then(function () { 
-      googleAuthInstance.signIn().then(updateUserProfile, logoutFailed);
-    }, logoutFailed); 
+    gapi.auth.setToken(null);
+    gapi.auth.authorize(_.extend({}, authOptions, {immediate: false, authuser: -1}), updateUserProfile);
   });
 
   window.addEventListener('MM:GoogleScriptsFailed', function () {
@@ -66,11 +65,11 @@
   });
 
   window.addEventListener('MM:GoogleScriptsLoaded', function () {
-    googleAuthInstance = gapi.auth2.init({client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', scope: 'https://www.googleapis.com/auth/drive.install'})
-    updateUserProfile();
     setStatus('Scripts loaded... Ready for action');
+    gapi.auth.authorize(_.extend({}, authOptions, {immediate: true}), updateUserProfile);
   });
 
 
 </script>
 <%= erb :google_load_scripts %>
+<%= erb :vendor_scripts %>

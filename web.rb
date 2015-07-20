@@ -24,7 +24,6 @@ end
 get '/drive/open' do
   erb :drive_new
 end
-get "/drive/file/:fileid" do
-  @fileid = params[:fileid]
+get "/drive/file/*" do
   erb :drive_new
 end

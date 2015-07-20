@@ -13,7 +13,7 @@ var setStatus = function (statusMsg) {
     document.getElementById('status').innerHTML=statusMsg;
   },
   defaultTitle = 'all new untitled mind map',
-  fileId = '<%= @fileid%>',
+  filePathPrefix = '/drive/file/',
   initialContent = {id: 1, title: defaultTitle},
   queryStringParams = window.location.search.substr(1).split('&').reduce(
     function (memo, component) {
@@ -23,6 +23,11 @@ var setStatus = function (statusMsg) {
     }, {}
   ),
   driveState = (queryStringParams.state && JSON.parse(queryStringParams.state)) || {},
+  fileIdFromUrl = function () {
+    var r= new RegExp('^' + filePathPrefix.replace(/\//g,'\\/') + '(.*)'),
+        match = window.location.pathname.match(r);
+    return match && match[1];
+  }
   authenticator = new MM2.GoogleAuthenticatorService({
       client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', 
       scope: '<%=settings.startup_drive_scopes%>',
@@ -56,7 +61,7 @@ var setStatus = function (statusMsg) {
 	openFile = function (token, fileId) {
 		googleDriveService.getMetaData(token, fileId).then(function(fileMeta) {
 			/** TODO: check mime type, recognise if importing required **/
-			window.history.replaceState({}, fileMeta.title, '/drive/file/' + fileId);
+			window.history.replaceState({}, fileMeta.title, filePathPrefix + fileId);
 			document.title = fileMeta.title;
 			gapi.drive.realtime.load(fileId, onFileLoaded, initializeModel, onRealtimeLoadError);
 		}, function (jqXHR, errorText, errorRaised) {
@@ -70,7 +75,7 @@ var setStatus = function (statusMsg) {
       googleDriveService.createShortcut(userProfile.getAuthToken(), defaultTitle, driveState.folderId).then(function (id) { 
         setStatus('File shortcut created: ' + id + ' for user ' + userProfile.getEmail());
 				document.title= defaultTitle;
-        window.history.replaceState({}, defaultTitle, '/drive/file/' + id);
+        window.history.replaceState({}, defaultTitle, filePathPrefix + id);
         gapi.drive.realtime.load(id, onFileLoaded, initializeModel, onRealtimeLoadError);
       }, function (textStatus, errorThrown) {
         setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
@@ -81,8 +86,8 @@ var setStatus = function (statusMsg) {
       } else {
         setStatus('Sadly, no ID specified in the request');
       }
-    } else if (fileId) {
-				openFile(userProfile.getAuthToken(), fileId);
+    } else if (fileIdFromUrl()) {
+				openFile(userProfile.getAuthToken(), fileIdFromUrl());
     } else {
       setStatus('unsupported action');
     }
@@ -96,7 +101,7 @@ window.addEventListener('MM:GoogleScriptsLoaded', function () {
     setStatus('Sadly, Vendor Script Loading failed!');
   }
 
-  if ((driveState && driveState.userId) || fileId) {
+  if ((driveState && driveState.userId) || fileIdFromUrl()) {
     setStatus('signing in');
     authenticator.backgroundAuthenticate(driveState && driveState.userId).then(postLogin, function () {
       $('#manual-login').show();  

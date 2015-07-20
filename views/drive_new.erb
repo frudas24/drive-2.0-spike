@@ -1,7 +1,53 @@
-<h1>Drive</h1>
-<span id="status">
-  Initialising...
-</span>
+<html>
+
+<head>
+
+</head>
+
+<body>
+
+<style type="text/css">
+  .header {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    height: 30px;
+    background: silver;
+    border-bottom: 1px solid black;
+  }
+  .status {
+    right: 0px;
+    position: absolute;
+    padding-right: 20px;
+  }
+  body {
+    padding: 0;
+    margin: 0;
+  }
+  .filename {
+    font-size: 20px;
+    font-weight: bold;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-decoration: none;
+    color: black;
+    cursor: pointer;
+  }
+  .profile.email {
+    font-size: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+</style>
+<div class="header">
+  <a class="filename" title="Rename"></a>
+  <span class="profile email"></span>
+  <span id="status" class="status">
+    Initialising...
+  </span>
+</div>
+
 <div id="manual-login" style="display:none">
   Could not log in automatically. Please <button id="login">Sign In With Google</button>
 </div>
@@ -59,10 +105,11 @@ var setStatus = function (statusMsg) {
     model.getRoot().set('initialContent', JSON.stringify(initialContent));
 	},
 	openFile = function (token, fileId) {
-		googleDriveService.getMetaData(token, fileId).then(function(fileMeta) {
+		googleDriveService.getMetaData(fileId).then(function(fileMeta) {
 			/** TODO: check mime type, recognise if importing required **/
 			window.history.replaceState({}, fileMeta.title, filePathPrefix + fileId);
 			document.title = fileMeta.title;
+      $('.filename').text(fileMeta.title);
 			gapi.drive.realtime.load(fileId, onFileLoaded, initializeModel, onRealtimeLoadError);
 		}, function (jqXHR, errorText, errorRaised) {
 			setStatus('Sadly, loading file meta-data failed ' + errorText);
@@ -70,11 +117,13 @@ var setStatus = function (statusMsg) {
 		});
 	},
   postLogin = function(userProfile) {
+    $('.profile.email').text(userProfile.getEmail());
     if (driveState.action === 'create') {
       setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + userProfile.getEmail());
-      googleDriveService.createShortcut(userProfile.getAuthToken(), defaultTitle, driveState.folderId).then(function (id) { 
+      googleDriveService.createShortcut(defaultTitle, driveState.folderId).then(function (id) { 
         setStatus('File shortcut created: ' + id + ' for user ' + userProfile.getEmail());
 				document.title= defaultTitle;
+        $('.filename').text(defaultTitle);
         window.history.replaceState({}, defaultTitle, filePathPrefix + id);
         gapi.drive.realtime.load(id, onFileLoaded, initializeModel, onRealtimeLoadError);
       }, function (textStatus, errorThrown) {
@@ -92,6 +141,21 @@ var setStatus = function (statusMsg) {
       setStatus('unsupported action');
     }
   };
+
+$('.filename').on('click', function () {
+   var newName = prompt('New file name', this.innerHTML);
+    if (newName) {
+      googleDriveService.renameFile(fileIdFromUrl(), newName).then(function (fileMeta) {
+        document.title = fileMeta.title;
+        $('.filename').text(fileMeta.title);
+      }, 
+      function (jqXHR, errorText, thrownError) {
+        console.log(thrownError);
+        setStatus('Sadly, renaming failed ' + errorText);
+      });
+    }
+});
+
 window.addEventListener('MM:GoogleScriptsFailed', function () {
   setStatus('Sadly, Google Script Loading failed!');
 });
@@ -121,4 +185,5 @@ window.addEventListener('MM:GoogleScriptsLoaded', function () {
 
 </script>
 <%= erb :google_load_scripts %>
-
+</body>
+</html>

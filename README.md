@@ -39,12 +39,12 @@ Questions to explore:
   * loading/creating files from the Drive UI - to avoid access privilege issues
     * ~~create in the right folder~~
   * enable moving to a folder from within the app
-  * keep the folder/s when saving
+  * ~~keep the folder/s when saving~~
   * inherit sharing properties when created in a folder
   * sharing from within the app
   * ~~can we use a single page instead of redirects from /gd, and use pushState to replace history when a file is created etc?~~
-  * rename file from the app (don't force the name to be the same as central node)
-    * ensure name is preserved when saving
+  * ~~rename file from the app (don't force the name to be the same as central node)~~
+    * ~~ensure name is preserved when saving~~
 * can we work in a meaningful way with completely public/read maps
   * ideally not ask clients to even log in
 * can we offer more meaningful drive integration

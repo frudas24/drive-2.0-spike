@@ -1,41 +1,53 @@
-/*global MM2, jQuery */
+/*global MM2, jQuery, gapi */
 MM2.GoogleDriveService = function () {
 	'use strict';
 	var self = this,
-			shortcutMimeType = 'application/vnd.google-apps.drive-sdk';
-	self.getMetaData = function (authToken, fileId) {
+			shortcutMimeType = 'application/vnd.google-apps.drive-sdk',
+			baseUrl = 'https://www.googleapis.com/drive/v2/files',
+			currentToken = function () {
+				return gapi.auth.getToken().access_token;
+			};
+	self.getMetaData = function (fileId) {
 		return jQuery.ajax({
 			type: 'GET',
-			url: 'https://www.googleapis.com/drive/v2/files/' + fileId,
+			url: baseUrl + '/' + fileId,
 			headers: {
-				'Authorization': 'Bearer ' + authToken
+				'Authorization': 'Bearer ' + currentToken()
 			},
 			dataType: 'json'
 		});
 	};
-	self.createShortcut = function (authToken, title, folderId) {
+	self.renameFile = function (fileId, newName) {
+		var metadata = {
+			'title': newName
+		};
+		return jQuery.ajax({
+			type: 'PATCH',
+			url: baseUrl + '/' + fileId,
+			headers: {
+				'Authorization': 'Bearer ' + currentToken(),
+				'Content-Type': 'application/json'
+			},
+			dataType: 'json',
+			data: JSON.stringify(metadata)
+		});
+
+	};
+	self.createShortcut = function (title, folderId) {
 		var promise = jQuery.Deferred(),
-				boundary = '--multipart-boundary--',
-				delimiter = '\r\n--' + boundary + '\r\n',
-				closeDelim = '\r\n--' + boundary + '--',
 				metadata = {
 					'title': title,
 					'mimeType': shortcutMimeType,
 					'parents': folderId && [{id: folderId}]
-				},
-				multipartRequestBody =
-					delimiter +
-					'Content-Type: application/json\r\n\r\n' +
-					JSON.stringify(metadata) +
-					closeDelim;
+				};
 		jQuery.ajax({
 			type: 'POST',
-			url: 'https://www.googleapis.com/upload/drive/v2/files?uploadType=multipart',
+			url: baseUrl,
 			headers: {
-				'Authorization': 'Bearer ' + authToken,
-				'Content-Type': 'multipart/related; boundary="' + boundary + '"'
+				'Authorization': 'Bearer ' + currentToken(),
+				'Content-Type': 'application/json'
 			},
-			data: multipartRequestBody,
+			data: JSON.stringify(metadata),
 			dataType: 'json'
 		}).then(function (result) {
 			promise.resolve(result.id);

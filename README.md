@@ -5,9 +5,9 @@ Questions to explore:
 
 * ~~can a user logged in to multiple accounts work seamlessly?~~ 
   * ~~which auth library do we use from now on?~~
-    * Seems to be [a new API for auth](https://developers.google.com/identity/sign-in/web/reference#gapiauth2initwzxhzdk19paramswzxhzdk20) 
-      * doesn't have immediate/non immediate -- how do we deal with that?
-    * [gapi.auth.signin](https://developers.google.com/identity/sign-in/web/sign-in) claims to support multiple accounts and a selector
+    * ~~Seems to be [a new API for auth](https://developers.google.com/identity/sign-in/web/reference#gapiauth2initwzxhzdk19paramswzxhzdk20)~~ 
+      * ~~doesn't have immediate/non immediate -- how do we deal with that?~~
+    * ~~[gapi.auth.signin](https://developers.google.com/identity/sign-in/web/sign-in) claims to support multiple accounts and a selector~~
   * ~~switch between accounts~~ almost: multiple users have to be logged in!
   * ~~show currently selected account~~
 * ~~can we detect when the wrong user is logged in if a file is created/opened via drive?~~
@@ -63,7 +63,7 @@ discovery notes
 
 * there is a new drive-share API. What does it do?
 
-## Authemticating
+## Authenticating
 
 * client.js superseeded by platform.js - seems to do the same things, re loading APIs. What is the key difference?
     * almost 80K more, compared to bare client
@@ -85,3 +85,4 @@ discovery notes
 ## Testing options
 
 * Drive.realtime setServerAddress suggests it's possible to switch between production, sandbox etc environments. See lines 214-228 of [realtime-utils](https://github.com/googledrive/realtime-utils/blob/master/realtime-client-utils.js) on github
+* keep a minimal skeleton troubleshooter for API access testing? 

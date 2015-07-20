@@ -20,7 +20,12 @@ Questions to explore:
     * disconnect
     * ABP
   * can we show a total capacity warning when close to 10 MB?
+    * [model.bytesUsed](https://developers.google.com/google-apps/realtime/reference/gapi.drive.realtime.Model) shows how much it's taking
     * can we compress somehow?
+  * can we show a warning on network latency
+    * document.saveDelay is the timer to watch?
+  * can we show a warning when read-only?
+      * https://developers.google.com/google-apps/realtime/collaborators - read-only mode
   * can we store images on drive to avoid message size problems and remove capacity problems?
       * maybe use thumbmnails from the hangouts spike?
       * how does this work with exporters? can we grab them locally via CORS?

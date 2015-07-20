@@ -22,5 +22,8 @@ get '/drive/new' do
   erb :drive_new
 end
 get '/drive/open' do
-  erb :drive_open
+  erb :drive_new
+end
+get "/drive/file/:fileid" do
+  erb :drive_new, :locals => {:fileid => params[:fileid]}
 end

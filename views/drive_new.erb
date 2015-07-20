@@ -1,4 +1,4 @@
-<h1>Drive/New</h1>
+<h1>Drive</h1>
 <span id="status">
   Initialising...
 </span>
@@ -12,8 +12,9 @@
 var setStatus = function (statusMsg) {
     document.getElementById('status').innerHTML=statusMsg;
   },
-
   defaultTitle = 'all new untitled mind map',
+  fileId = '<%=fileid%>',
+  initialContent = {id: 1, title: defaultTitle},
   queryStringParams = window.location.search.substr(1).split('&').reduce(
     function (memo, component) {
       var kvp = component.split('=').map(decodeURIComponent); 
@@ -21,27 +22,60 @@ var setStatus = function (statusMsg) {
       return memo;
     }, {}
   ),
-  driveState = JSON.parse(queryStringParams.state),
+  driveState = (queryStringParams.state && JSON.parse(queryStringParams.state)) || {},
   authenticator = new MM2.GoogleAuthenticatorService({
       client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', 
       scope: '<%=settings.startup_drive_scopes%>',
       'cookie_policy': 'single_host_origin'
   }),
   googleDriveService = new MM2.GoogleDriveService(),
+  onRealtimeLoadError = function(error) {
+    if (error.type == gapi.drive.realtime.ErrorType.TOKEN_REFRESH_REQUIRED) {
+      setStatus('Session expired - please refresh');
+      /*TODO: auto-refresh token*/
+    } else if (error.type == window.gapi.drive.realtime.ErrorType.CLIENT_ERROR) {
+      setStatus('An Error happened: ' + error.message);
+    } else if (error.type == window.gapi.drive.realtime.ErrorType.NOT_FOUND) {
+      setStatus('The file was not found. It does not exist or you do not have read access to the file.');
+    } else if (error.type == window.gapi.drive.realtime.ErrorType.FORBIDDEN) {
+      setStatus('You do not have access to this file. Try having the owner share it with you from Google Drive.');
+    } else {
+      console.log(error);
+      setStatus('A network error occured during loading.');
+    }
+  },
+  onFileLoaded = function(realtimeDoc) {
+    setStatus('realtime doc loaded');
+  },
+  initializeModel = function(model) {
+    setStatus('initializing model');
+    model.getRoot().set('events', model.createList());
+    model.getRoot().set('focusNodes', model.createMap());
+    model.getRoot().set('initialContent', JSON.stringify(initialContent));
+  },
   postLogin = function(userProfile) {
     if (driveState.action === 'create') {
       setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + userProfile.getEmail());
       googleDriveService.createShortcut(userProfile.getAuthToken(), defaultTitle, driveState.folderId).then(function (id) { 
         setStatus('File shortcut created: ' + id + ' for user ' + userProfile.getEmail());
         window.history.replaceState({},defaultTitle, '/drive/file/' + id);
+        gapi.drive.realtime.load(id, onFileLoaded, initializeModel, onRealtimeLoadError);
       }, function (textStatus, errorThrown) {
         setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
       });
+    } else if (driveState.action === 'open') {
+      if (driveState.ids && driveState.ids[0]) {
+        window.history.replaceState({}, '', '/drive/file/' + driveState.ids[0]);
+        gapi.drive.realtime.load(driveState.ids[0], onFileLoaded, initializeModel, onRealtimeLoadError);
+      } else {
+        setStatus('Sadly, no ID specified in the request');
+      }
+    } else if (fileId) {
+        gapi.drive.realtime.load(fileId, onFileLoaded, initializeModel, onRealtimeLoadError);
     } else {
-      setStatus('unsupported action ' + driveState.action);
+      setStatus('unsupported action');
     }
   };
-
 window.addEventListener('MM:GoogleScriptsFailed', function () {
   setStatus('Sadly, Google Script Loading failed!');
 });
@@ -50,15 +84,17 @@ window.addEventListener('MM:GoogleScriptsLoaded', function () {
   if (!window.jQuery) {
     setStatus('Sadly, Vendor Script Loading failed!');
   }
-  if (!driveState || !driveState.userId) {
-    setStatus('invalid drive status request - no user id specified'); 
+
+  if ((driveState && driveState.userId) || fileId) {
+    setStatus('signing in');
+    authenticator.backgroundAuthenticate(driveState && driveState.userId).then(postLogin, function () {
+      $('#manual-login').show();  
+    });
+  } else {
+    setStatus('Invalid request - file ID not specified');
   }
-  setStatus('signing in');
-  authenticator.backgroundAuthenticate(driveState.userId).then(postLogin, function () {
-    $('#manual-login').show();  
-  });
   $('#login').on('click', function (token) {
-    authenticator.modalAuthenticate(driveState.userId).then(function (profile) {
+    authenticator.modalAuthenticate(driveState && driveState.userId).then(function (profile) {
       $('#manual-login').hide();  
       postLogin(profile); 
     }, function () {

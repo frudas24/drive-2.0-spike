@@ -1,6 +1,6 @@
 <script>
   window.initGoogleAPI = function () {
-    if (!gapi.auth) {
+    if (!gapi.drive || !gapi.drive.realtime) {
       gapi.load('auth,drive-realtime,drive-share', initGoogleAPI);
       return;
     } 

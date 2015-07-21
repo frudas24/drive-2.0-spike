@@ -1,5 +1,6 @@
 <script src="/mapjs-compiled.js"></script>
 <script src="/mm2.js" ></script>
-<script src="/lib/google-authenticator.js" ></script>
-<script src="/lib/google-drive-service.js" ></script>
-
+<%=
+  files = Dir.entries("#{settings.public_folder}/lib").reject{|d| File.extname(d) != '.js' }
+  files.map {|f| "<script src='/lib/#{f}'></script>"}.join('')
+%>

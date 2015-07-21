@@ -1,4 +1,8 @@
 /*global MM2, jQuery, gapi */
+
+/*TODO - reject with more meaninful errors, especially
+ * not-authenticated, not-authorised, network-error, invalid-request */
+
 MM2.GoogleDriveService = function () {
 	'use strict';
 	var self = this,
@@ -31,7 +35,6 @@ MM2.GoogleDriveService = function () {
 			dataType: 'json',
 			data: JSON.stringify(metadata)
 		});
-
 	};
 	self.createShortcut = function (title, folderId) {
 		var promise = jQuery.Deferred(),
@@ -51,9 +54,7 @@ MM2.GoogleDriveService = function () {
 			dataType: 'json'
 		}).then(function (result) {
 			promise.resolve(result.id);
-		}, function (jqXHR, textStatus, errorThrown) {
-			promise.reject(textStatus, errorThrown);
-		});
+		}, promise.reject);
 		return promise.promise();
 	};
 };

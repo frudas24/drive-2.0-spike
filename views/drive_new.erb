@@ -55,25 +55,15 @@
 <%= erb :own_scripts %>
 
 <script>
+
 var setStatus = function (statusMsg) {
     document.getElementById('status').innerHTML=statusMsg;
   },
   defaultTitle = 'all new untitled mind map',
   filePathPrefix = '/drive/file/',
   initialContent = {id: 1, title: defaultTitle},
-  queryStringParams = window.location.search.substr(1).split('&').reduce(
-    function (memo, component) {
-      var kvp = component.split('=').map(decodeURIComponent); 
-      memo[kvp[0]]=kvp[1];
-      return memo;
-    }, {}
-  ),
-  driveState = (queryStringParams.state && JSON.parse(queryStringParams.state)) || {},
-  fileIdFromUrl = function () {
-    var r= new RegExp('^' + filePathPrefix.replace(/\//g,'\\/') + '(.*)'),
-        match = window.location.pathname.match(r);
-    return match && match[1];
-  }
+  mm2CollaborationModel = new MM2.CollaborationModel(),
+  activeContentListener = new MM2.CollaborationModelActiveContentListener(mm2CollaborationModel),
   authenticator = new MM2.GoogleAuthenticatorService({
       client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', 
       scope: '<%=settings.startup_drive_scopes%>',
@@ -107,8 +97,12 @@ var setStatus = function (statusMsg) {
   onAttributeChanged = function (attributeEvent) {
     console.log('attribute changed', attributeEvent);
   },
-  onContentEventAdded = function (contentEvent) {
-    console.log('content event added', contentEvent);
+  onContentEventAdded = function (valuesAddedEvent) {
+    if (!valuesAddedEvent.isLocal) {
+      valuesAddedEvent.values.forEach(function(contentEvent) {
+          mm2CollaborationModel.triggerContentEvent(contentEvent, valuesAddedEvent.sessionId);
+      });
+    }
   },
   onFocusNodeChanged = function (focusNodeEvent) {
     console.log('focus node event', focusNodeEvent);
@@ -121,16 +115,18 @@ var setStatus = function (statusMsg) {
     realtimeDoc.getModel().getRoot().get('focusNodes').addEventListener(gapi.drive.realtime.EventType.VALUE_CHANGED, onFocusNodeChanged);
   },
   onSessionIdRecognised = function (realtimeDoc, sessionId) {
-    console.log('session ID recognised', sessionId);
-    var initialContent = realtimeDoc.getModel().getRoot().get('initialContent');
-    console.log('starting a map with initial content', initialContent);
+    var initialContent = realtimeDoc.getModel().getRoot().get('initialContent'),
+        initialEvents = realtimeDoc.getModel().getRoot().get('events').asArray();
+    mm2CollaborationModel.initializeSession(sessionId, initialContent, initialEvents);
+    mm2CollaborationModel.addEventListener('localContentEvent', function (evt) {
+      realtimeDoc.getModel().getRoot().get('events').push(evt);
+    });
   },
   onFileLoaded = function(realtimeDoc) {
     setStatus('realtime doc loaded');
     window.realtimeDoc = realtimeDoc;
     var me = realtimeDoc.getCollaborators().filter(function(c) { return c.isMe; });
     if (me && me.length>0 && me[0]) {
-      console.log('discovered myself', me[0]);
       onSessionIdRecognised(realtimeDoc, me[0].sessionId);
     }
     attachDocListeners(realtimeDoc);
@@ -151,20 +147,7 @@ var setStatus = function (statusMsg) {
     model.getRoot().set('focusNodes', model.createMap());
     model.getRoot().set('initialContent', JSON.stringify(initialContent));
 	},
-	openFile = function (token, fileId) {
-		googleDriveService.getMetaData(fileId).then(function(fileMeta) {
-			/** TODO: check mime type, recognise if importing required **/
-			window.history.replaceState({}, fileMeta.title, filePathPrefix + fileId);
-			document.title = fileMeta.title;
-      $('.filename').text(fileMeta.title);
-			gapi.drive.realtime.load(fileId, onFileLoaded, initializeModel, onRealtimeLoadError);
-		}, function (jqXHR, errorText, errorRaised) {
-			setStatus('Sadly, loading file meta-data failed ' + errorText);
-			/** TODO: Handle errors gracefully */
-		});
-	},
   postLogin = function(userProfile) {
-    $('.profile.email').text(userProfile.getEmail());
     if (driveState.action === 'create') {
       setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + userProfile.getEmail());
       googleDriveService.createShortcut(defaultTitle, driveState.folderId).then(function (id) { 
@@ -187,7 +170,8 @@ var setStatus = function (statusMsg) {
     } else {
       setStatus('unsupported action');
     }
-  };
+  },
+  googleDrivePageController = new MM2.GoogleDrivePageController (defaultTitle, filePathPrefix, authenticator, googleDriveService);
 
 $('.filename').on('click', function () {
    var newName = prompt('New file name', this.innerHTML);
@@ -210,25 +194,36 @@ window.addEventListener('MM:GoogleScriptsFailed', function () {
 window.addEventListener('MM:GoogleScriptsLoaded', function () {
   if (!window.jQuery) {
     setStatus('Sadly, Vendor Script Loading failed!');
-  }
-
-  if ((driveState && driveState.userId) || fileIdFromUrl()) {
-    setStatus('signing in');
-    authenticator.backgroundAuthenticate(driveState && driveState.userId).then(postLogin, function () {
+    }
+  var pageInitialised = function (fileId, fileName, userProfile) {
+    $('#manual-login').hide();
+ 	  $('.filename').text(fileName);
+    document.title = fileName;
+    $('.profile.email').text(userProfile.getEmail());
+		gapi.drive.realtime.load(fileId, onFileLoaded, initializeModel, onRealtimeLoadError);
+  }, 
+  handleControllerErrors = function (reason) {
+    if (reason === 'not-authenticated') {
       $('#manual-login').show();  
-    });
-  } else {
-    setStatus('Invalid request - file ID not specified');
-  }
-  $('#login').on('click', function (token) {
-    authenticator.modalAuthenticate(driveState && driveState.userId).then(function (profile) {
-      $('#manual-login').hide();  
-      postLogin(profile); 
-    }, function () {
-      setStatus('Sadly, login failed'); 
-    });
+    } else {
+      setStatus(reason);
+    }
+  };
+  googleDrivePageController.initPage().then(pageInitialised, handleControllerErrors, setStatus);
+  $('#login').on('click', function () {
+    googleDrivePageController.initPage(true).then(pageInitialised, handleControllerErrors, setStatus);
   });
 });
+
+activeContentListener.addEventListener('mm-active-content-changed', function (activeContent, newSession, method, args) {
+  if (newSession) {
+    console.log('new session', activeContent);
+  }
+  else {
+    console.log('change event', method, args);
+  }
+});
+
 
 </script>
 <%= erb :google_load_scripts %>

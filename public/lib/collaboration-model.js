@@ -7,7 +7,7 @@
  *  - initial content provided with session initialization
  *  - collaborator positions
  */
-MM2.CollaborationModel = function () {
+MM2.CollaborationModel = function (defaultInitialContent) {
 	'use strict';
 	var self = observable(this);
 	self.initializeSession = function (localSessionId, initialContent, initialEvents) {
@@ -18,6 +18,9 @@ MM2.CollaborationModel = function () {
 	};
 	self.triggerLocalContentEvent = function (contentEvent) {
 		self.dispatchEvent('localContentEvent', contentEvent);
+	};
+	self.getDefaultInitialContent = function () {
+		return defaultInitialContent;
 	};
 };
 

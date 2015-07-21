@@ -46,7 +46,7 @@ MM2.GoogleDrivePageController = function (defaultTitle, filePathPrefix, authenti
 					googleDriveService.getMetaData(fileId).then(function (fileMeta) {
 						/** TODO: check mime type, recognise if importing required **/
 						window.history.replaceState({}, fileMeta.title, filePathPrefix + fileId);
-						promise.resolve(fileId, fileMeta.Title, userProfile);
+						promise.resolve(fileId, fileMeta.title, userProfile);
 					}, promise.reject);
 				},
 				postLogin = function (userProfile) {

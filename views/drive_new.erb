@@ -62,7 +62,7 @@ var setStatus = function (statusMsg) {
   defaultTitle = 'all new untitled mind map',
   filePathPrefix = '/drive/file/',
   initialContent = {id: 1, title: defaultTitle},
-  mm2CollaborationModel = new MM2.CollaborationModel(),
+  mm2CollaborationModel = new MM2.CollaborationModel(initialContent),
   activeContentListener = new MM2.CollaborationModelActiveContentListener(mm2CollaborationModel),
   authenticator = new MM2.GoogleAuthenticatorService({
       client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', 
@@ -70,122 +70,7 @@ var setStatus = function (statusMsg) {
       'cookie_policy': 'single_host_origin'
   }),
   googleDriveService = new MM2.GoogleDriveService(),
-  onRealtimeLoadError = function(error) {
-    if (error.type == gapi.drive.realtime.ErrorType.TOKEN_REFRESH_REQUIRED) {
-      setStatus('Session expired - please refresh');
-      /*TODO: auto-refresh token*/
-    } else if (error.type == window.gapi.drive.realtime.ErrorType.CLIENT_ERROR) {
-      setStatus('An Error happened: ' + error.message);
-    } else if (error.type == window.gapi.drive.realtime.ErrorType.NOT_FOUND) {
-      setStatus('The file was not found. It does not exist or you do not have read access to the file.');
-    } else if (error.type == window.gapi.drive.realtime.ErrorType.FORBIDDEN) {
-      setStatus('You do not have access to this file. Try having the owner share it with you from Google Drive.');
-    } else {
-      console.log(error);
-      setStatus('A network error occured during loading.');
-    }
-  },
-  onCollaboratorLeft = function (collaboratorEvent) {
-    console.log('collaborator left', collaboratorEvent.collaborator);
-  },
-  onCollaboratorJoined = function (collaboratorEvent) {
-    console.log('collaborator joined', collaboratorEvent.collaborator);
-    if (collaboratorEvent.collaborator.isMe) {
-      onSessionIdRecognised(collaboratorEvent.target, collaboratorEvent.collaborator.sessionId);
-    }
-  },
-  onAttributeChanged = function (attributeEvent) {
-    console.log('attribute changed', attributeEvent);
-  },
-  onContentEventAdded = function (valuesAddedEvent) {
-    if (!valuesAddedEvent.isLocal) {
-      valuesAddedEvent.values.forEach(function(contentEvent) {
-          mm2CollaborationModel.triggerContentEvent(contentEvent, valuesAddedEvent.sessionId);
-      });
-    }
-  },
-  onFocusNodeChanged = function (focusNodeEvent) {
-    console.log('focus node event', focusNodeEvent);
-  },
-  attachDocListeners = function (realtimeDoc) {
-    realtimeDoc.addEventListener(gapi.drive.realtime.EventType.COLLABORATOR_LEFT, onCollaboratorLeft);
-    realtimeDoc.addEventListener(gapi.drive.realtime.EventType.COLLABORATOR_JOINED, onCollaboratorJoined);
-    realtimeDoc.addEventListener(gapi.drive.realtime.EventType.ATTRIBUTE_CHANGED, onAttributeChanged);
-    realtimeDoc.getModel().getRoot().get('events').addEventListener(gapi.drive.realtime.EventType.VALUES_ADDED, onContentEventAdded);
-    realtimeDoc.getModel().getRoot().get('focusNodes').addEventListener(gapi.drive.realtime.EventType.VALUE_CHANGED, onFocusNodeChanged);
-  },
-  onSessionIdRecognised = function (realtimeDoc, sessionId) {
-    var initialContent = realtimeDoc.getModel().getRoot().get('initialContent'),
-        initialEvents = realtimeDoc.getModel().getRoot().get('events').asArray();
-    mm2CollaborationModel.initializeSession(sessionId, initialContent, initialEvents);
-    mm2CollaborationModel.addEventListener('localContentEvent', function (evt) {
-      realtimeDoc.getModel().getRoot().get('events').push(evt);
-    });
-  },
-  onFileLoaded = function(realtimeDoc) {
-    setStatus('realtime doc loaded');
-    window.realtimeDoc = realtimeDoc;
-    var me = realtimeDoc.getCollaborators().filter(function(c) { return c.isMe; });
-    if (me && me.length>0 && me[0]) {
-      onSessionIdRecognised(realtimeDoc, me[0].sessionId);
-    }
-    attachDocListeners(realtimeDoc);
-    window.addEventListener('beforeunload', function (event) {
-      try {
-        if (!realtimeDoc.isClosed) {
-          realtimeDoc.close();
-        }
-      } catch (e) {
-        console.log('optimistic doc closing failed', e);
-        // ignore error
-      }
-    });
-  },
-  initializeModel = function(model) {
-    setStatus('initializing model');
-    model.getRoot().set('events', model.createList());
-    model.getRoot().set('focusNodes', model.createMap());
-    model.getRoot().set('initialContent', JSON.stringify(initialContent));
-	},
-  postLogin = function(userProfile) {
-    if (driveState.action === 'create') {
-      setStatus('creating a file in folder ' + driveState.folderId + ' for user ' + userProfile.getEmail());
-      googleDriveService.createShortcut(defaultTitle, driveState.folderId).then(function (id) { 
-        setStatus('File shortcut created: ' + id + ' for user ' + userProfile.getEmail());
-				document.title= defaultTitle;
-        $('.filename').text(defaultTitle);
-        window.history.replaceState({}, defaultTitle, filePathPrefix + id);
-        gapi.drive.realtime.load(id, onFileLoaded, initializeModel, onRealtimeLoadError);
-      }, function (textStatus, errorThrown) {
-        setStatus('Sadly, creating a file failed: [' + textStatus + '] ' + errorThrown);
-      });
-    } else if (driveState.action === 'open') {
-      if (driveState.ids && driveState.ids[0]) {
-				openFile(userProfile.getAuthToken(), driveState.ids[0]);
-      } else {
-        setStatus('Sadly, no ID specified in the request');
-      }
-    } else if (fileIdFromUrl()) {
-				openFile(userProfile.getAuthToken(), fileIdFromUrl());
-    } else {
-      setStatus('unsupported action');
-    }
-  },
   googleDrivePageController = new MM2.GoogleDrivePageController (defaultTitle, filePathPrefix, authenticator, googleDriveService);
-
-$('.filename').on('click', function () {
-   var newName = prompt('New file name', this.innerHTML);
-    if (newName) {
-      googleDriveService.renameFile(fileIdFromUrl(), newName).then(function (fileMeta) {
-        document.title = fileMeta.title;
-        $('.filename').text(fileMeta.title);
-      }, 
-      function (jqXHR, errorText, thrownError) {
-        console.log(thrownError);
-        setStatus('Sadly, renaming failed ' + errorText);
-      });
-    }
-});
 
 window.addEventListener('MM:GoogleScriptsFailed', function () {
   setStatus('Sadly, Google Script Loading failed!');
@@ -197,10 +82,25 @@ window.addEventListener('MM:GoogleScriptsLoaded', function () {
     }
   var pageInitialised = function (fileId, fileName, userProfile) {
     $('#manual-login').hide();
- 	  $('.filename').text(fileName);
+    $('.filename').text(fileName).on('click', function () {
+       var newName = prompt('New file name', this.innerHTML);
+        if (newName) {
+          googleDriveService.renameFile(fileId, newName).then(function (fileMeta) {
+            document.title = fileMeta.title;
+            $('.filename').text(fileMeta.title);
+          }, 
+          function (jqXHR, errorText, thrownError) {
+            console.log(thrownError);
+            setStatus('Sadly, renaming failed ' + errorText);
+          });
+        }
+    });
     document.title = fileName;
     $('.profile.email').text(userProfile.getEmail());
-		gapi.drive.realtime.load(fileId, onFileLoaded, initializeModel, onRealtimeLoadError);
+    MM2.mediateDriveRealtimeEvents(fileId, mm2CollaborationModel, function(error) {
+        console.log(error);
+        setStatus('Error', error);
+    }/*, console.log.bind(console)*/);
   }, 
   handleControllerErrors = function (reason) {
     if (reason === 'not-authenticated') {
@@ -223,7 +123,9 @@ activeContentListener.addEventListener('mm-active-content-changed', function (ac
     console.log('change event', method, args);
   }
 });
-
+mm2CollaborationModel.addEventListener('sessionInitialized', function () {
+  setStatus('document loaded');
+});
 
 </script>
 <%= erb :google_load_scripts %>

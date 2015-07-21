@@ -91,3 +91,9 @@ discovery notes
 
 * Drive.realtime setServerAddress suggests it's possible to switch between production, sandbox etc environments. See lines 214-228 of [realtime-utils](https://github.com/googledrive/realtime-utils/blob/master/realtime-client-utils.js) on github
 * keep a minimal skeleton troubleshooter for API access testing? 
+
+
+## Support options
+* window.gapi.drive.realtime.debug() launches a drive realtime debugger
+* [Drive realtime release notes page](https://developers.google.com/google-apps/realtime/release-notes) has details on API updates
+

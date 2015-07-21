@@ -95,8 +95,55 @@ var setStatus = function (statusMsg) {
       setStatus('A network error occured during loading.');
     }
   },
+  onCollaboratorLeft = function (collaboratorEvent) {
+    console.log('collaborator left', collaboratorEvent.collaborator);
+  },
+  onCollaboratorJoined = function (collaboratorEvent) {
+    console.log('collaborator joined', collaboratorEvent.collaborator);
+    if (collaboratorEvent.collaborator.isMe) {
+      onSessionIdRecognised(collaboratorEvent.target, collaboratorEvent.collaborator.sessionId);
+    }
+  },
+  onAttributeChanged = function (attributeEvent) {
+    console.log('attribute changed', attributeEvent);
+  },
+  onContentEventAdded = function (contentEvent) {
+    console.log('content event added', contentEvent);
+  },
+  onFocusNodeChanged = function (focusNodeEvent) {
+    console.log('focus node event', focusNodeEvent);
+  },
+  attachDocListeners = function (realtimeDoc) {
+    realtimeDoc.addEventListener(gapi.drive.realtime.EventType.COLLABORATOR_LEFT, onCollaboratorLeft);
+    realtimeDoc.addEventListener(gapi.drive.realtime.EventType.COLLABORATOR_JOINED, onCollaboratorJoined);
+    realtimeDoc.addEventListener(gapi.drive.realtime.EventType.ATTRIBUTE_CHANGED, onAttributeChanged);
+    realtimeDoc.getModel().getRoot().get('events').addEventListener(gapi.drive.realtime.EventType.VALUES_ADDED, onContentEventAdded);
+    realtimeDoc.getModel().getRoot().get('focusNodes').addEventListener(gapi.drive.realtime.EventType.VALUE_CHANGED, onFocusNodeChanged);
+  },
+  onSessionIdRecognised = function (realtimeDoc, sessionId) {
+    console.log('session ID recognised', sessionId);
+    var initialContent = realtimeDoc.getModel().getRoot().get('initialContent');
+    console.log('starting a map with initial content', initialContent);
+  },
   onFileLoaded = function(realtimeDoc) {
     setStatus('realtime doc loaded');
+    window.realtimeDoc = realtimeDoc;
+    var me = realtimeDoc.getCollaborators().filter(function(c) { return c.isMe; });
+    if (me && me.length>0 && me[0]) {
+      console.log('discovered myself', me[0]);
+      onSessionIdRecognised(realtimeDoc, me[0].sessionId);
+    }
+    attachDocListeners(realtimeDoc);
+    window.addEventListener('beforeunload', function (event) {
+      try {
+        if (!realtimeDoc.isClosed) {
+          realtimeDoc.close();
+        }
+      } catch (e) {
+        console.log('optimistic doc closing failed', e);
+        // ignore error
+      }
+    });
   },
   initializeModel = function(model) {
     setStatus('initializing model');

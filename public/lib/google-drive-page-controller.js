@@ -16,7 +16,7 @@ MM2.queryStringToMap = function (queryString) {
  *
  * It doesn't actually do anything with the file, but delegates the actual handling of the file to a promise resolver
  */
-MM2.GoogleDrivePageController = function (defaultTitle, filePathPrefix, authenticator, googleDriveService) {
+MM2.GoogleDrivePageController = function (defaultTitle, filePathPrefix, authenticator, googleDriveService, googleAppId) {
 	'use strict';
 	var self = this,
 		queryStringParams = MM2.queryStringToMap(window.location.search),
@@ -45,8 +45,12 @@ MM2.GoogleDrivePageController = function (defaultTitle, filePathPrefix, authenti
 					promise.notify('loading metadata for file' + fileId);
 					googleDriveService.getMetaData(fileId).then(function (fileMeta) {
 						/** TODO: check mime type, recognise if importing required **/
-						window.history.replaceState({}, fileMeta.title, filePathPrefix + fileId);
-						promise.resolve(fileId, fileMeta.title, userProfile);
+						if (fileMeta.mimeType !== 'application/vnd.google-apps.drive-sdk.' + googleAppId) {
+							promise.reject('invalid-file-type', fileMeta.mimeType);
+						} else {
+							window.history.replaceState({}, fileMeta.title, filePathPrefix + fileId);
+							promise.resolve(fileId, fileMeta.title, userProfile);
+						}
 					}, promise.reject);
 				},
 				postLogin = function (userProfile) {

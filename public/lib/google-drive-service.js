@@ -7,14 +7,24 @@ MM2.GoogleDriveService = function () {
 	'use strict';
 	var self = this,
 			shortcutMimeType = 'application/vnd.google-apps.drive-sdk',
-			baseUrl = 'https://www.googleapis.com/drive/v2/files',
+			baseUrl = 'https://www.googleapis.com/drive/v2/',
 			currentToken = function () {
 				return gapi.auth.getToken().access_token;
 			};
+	self.getDriveAppMetadata = function (appId) {
+		return jQuery.ajax({
+			type: 'GET',
+			url: baseUrl + 'apps/' + appId,
+			headers: {
+				'Authorization': 'Bearer ' + currentToken()
+			},
+			dataType: 'json'
+		});
+	};
 	self.getMetaData = function (fileId) {
 		return jQuery.ajax({
 			type: 'GET',
-			url: baseUrl + '/' + fileId,
+			url: baseUrl + 'files/' + fileId,
 			headers: {
 				'Authorization': 'Bearer ' + currentToken()
 			},
@@ -27,7 +37,7 @@ MM2.GoogleDriveService = function () {
 		};
 		return jQuery.ajax({
 			type: 'PATCH',
-			url: baseUrl + '/' + fileId,
+			url: baseUrl + 'files/' + fileId,
 			headers: {
 				'Authorization': 'Bearer ' + currentToken(),
 				'Content-Type': 'application/json'
@@ -45,7 +55,7 @@ MM2.GoogleDriveService = function () {
 				};
 		jQuery.ajax({
 			type: 'POST',
-			url: baseUrl,
+			url: baseUrl + 'files',
 			headers: {
 				'Authorization': 'Bearer ' + currentToken(),
 				'Content-Type': 'application/json'

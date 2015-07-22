@@ -1,7 +1,7 @@
 <html>
 
 <head>
-
+  <link href="<%=settings.public_url%>mapjs.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -38,7 +38,16 @@
     padding-left: 20px;
     padding-right: 20px;
   }
-  
+  #container {
+    background-color: #FFFFFF;
+    height: 100%;
+    width: 100%;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    margin:0;
+    padding:0;
+  }
 </style>
 <div class="header">
   <a class="filename" title="Rename"></a>
@@ -46,10 +55,15 @@
   <span id="status" class="status">
     Initialising...
   </span>
-</div>
 
 <div id="manual-login" style="display:none">
   Could not log in automatically. Please <button id="login">Sign In With Google</button>
+</div>
+  
+</div>
+
+
+<div id="container">
 </div>
 <%= erb :vendor_scripts %>
 <%= erb :own_scripts %>
@@ -71,6 +85,38 @@ var setStatus = function (statusMsg) {
   }),
   googleDriveService = new MM2.GoogleDriveService(),
   googleDrivePageController = new MM2.GoogleDrivePageController (defaultTitle, filePathPrefix, authenticator, googleDriveService);
+
+
+	isTouch = false,
+  getStorage = function () {
+    try {
+      window.localStorage.setItem('testkey', 'testval');
+      if (window.localStorage.getItem('testkey') === 'testval') {
+        return window.localStorage;
+      }
+    } catch (e) {
+    }
+    return {
+      fake: true,
+      getItem: function (key) {
+        return this[key];
+      },
+      setItem: function (key, val) {
+        this[key] = val;
+      },
+      removeItem: function (key) {
+        delete this[key];
+      }
+    };
+  },
+  mapModel = new MAPJS.MapModel(MAPJS.DOMRender.layoutCalculator, ['Press Space or double-click to edit'] /*, objectClipboard*/),
+  imageInsertController = observable({}),
+  activityLog = console,
+  initWidgets = function () {
+    var container = jQuery('#container');
+    container.domMapWidget(activityLog, mapModel, isTouch, imageInsertController, container, _.identity);
+  };
+		
 
 window.addEventListener('MM:GoogleScriptsFailed', function () {
   setStatus('Sadly, Google Script Loading failed!');
@@ -98,9 +144,12 @@ window.addEventListener('MM:GoogleScriptsLoaded', function () {
     document.title = fileName;
     $('.profile.email').text(userProfile.getEmail());
     MM2.mediateDriveRealtimeEvents(fileId, mm2CollaborationModel, function(error) {
-        console.log(error);
-        setStatus('Error', error);
+      console.log(error);
+      setStatus('Error', error);
     }/*, console.log.bind(console)*/);
+		MAPJS.DOMRender.stageVisibilityMargin = {top: 20, bottom: 20, left: 160, right: 160}; /* required for popover positioning */
+		MAPJS.DOMRender.stageMargin = {top: 20, bottom: 20, left: 170, right: 170}; /* required for popover positioning */
+		initWidgets();
   }, 
   handleControllerErrors = function (reason) {
     if (reason === 'not-authenticated') {
@@ -118,6 +167,7 @@ window.addEventListener('MM:GoogleScriptsLoaded', function () {
 activeContentListener.addEventListener('mm-active-content-changed', function (activeContent, newSession, method, args) {
   if (newSession) {
     console.log('new session', activeContent);
+		mapModel.setIdea(activeContent);
   }
   else {
     console.log('change event', method, args);

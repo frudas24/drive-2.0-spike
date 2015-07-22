@@ -58,6 +58,7 @@ Questions to explore:
   * images are photos from google drive photos?
   * keep required auth to a minimum
   * transparently validate gold accounts from logged in e-mail and hd (especially hd)
+  * upload thumbnail periodically/allow it to generate a preview
 * can we offer admins more control over what is used if app is installed in a domain
   * disable/enable gold services globally
   * log on to gold for the entire domain

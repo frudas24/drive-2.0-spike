@@ -45,6 +45,9 @@ Questions to explore:
   * ~~inherit sharing properties when created in a folder~~
   * sharing from within the app
   * can we detect remote file renames?
+    * watching/push is only server side
+    * we can poll eg 10 sec for meta-data changes and detect file renames
+    * we could also use a realtime field to detect meta-updates
   * ~~can we use a single page instead of redirects from /gd, and use pushState to replace history when a file is created etc?~~
   * ~~rename file from the app (don't force the name to be the same as central node)~~
     * ~~ensure name is preserved when saving~~

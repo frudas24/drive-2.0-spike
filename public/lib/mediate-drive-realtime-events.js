@@ -35,8 +35,7 @@ MM2.mediateDriveRealtimeEvents = function (driveFileId, mm2CollaborationModel, e
 			},
 			onRealtimeError = function (error) {
 				if (error.type == gapi.drive.realtime.ErrorType.TOKEN_REFRESH_REQUIRED) {
-					errorCallback('Session expired - please refresh');
-					/*TODO: auto-refresh token*/
+					errorCallback('token-refresh-required');
 				} else if (error.type == window.gapi.drive.realtime.ErrorType.CLIENT_ERROR) {
 					errorCallback('An Error happened: ' + error.message);
 				} else if (error.type == window.gapi.drive.realtime.ErrorType.NOT_FOUND) {

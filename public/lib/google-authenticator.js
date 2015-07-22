@@ -33,6 +33,9 @@ MM2.GoogleAuthenticatorService = function (config) {
 				headers:{'Authorization': 'Bearer ' + token}
 			});
 		};
+	self.refreshToken = function () {
+		return authorize({immediate: true});
+	};
 	self.backgroundAuthenticate = function (userId) {
 		var promise = jQuery.Deferred();
 		authorize({'login_hint': userId, immediate: true}).then(function (token) {

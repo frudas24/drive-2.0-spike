@@ -114,8 +114,15 @@ var setStatus = function (statusMsg) {
   initWidgets = function () {
     var container = jQuery('#container');
     container.domMapWidget(activityLog, mapModel, isTouch, imageInsertController, container, _.identity);
-  };
-		
+	},
+	handleDriveRealtimeErrors = function(error) {
+		if (error === 'token-refresh-required') {
+			authenticator.refreshToken();
+		} else {
+			console.log(error);
+			setStatus('Error', error);
+		}
+	};
 
 window.addEventListener('MM:GoogleScriptsFailed', function () {
   setStatus('Sadly, Google Script Loading failed!');
@@ -141,11 +148,9 @@ window.addEventListener('MM:GoogleScriptsLoaded', function () {
         }
     });
     document.title = fileName;
-    $('.profile.email').text(userProfile.getEmail());
-    MM2.mediateDriveRealtimeEvents(fileId, mm2CollaborationModel, function(error) {
-      console.log(error);
-      setStatus('Error', error);
-    }/*, console.log.bind(console)*/);
+		$('.profile.email').text(userProfile.getEmail());
+		window.setInterval(authenticator.refreshToken, 10 * 60 * 1000);
+		MM2.mediateDriveRealtimeEvents(fileId, mm2CollaborationModel, handleDriveRealtimeErrors);
 		MAPJS.DOMRender.stageVisibilityMargin = {top: 20, bottom: 20, left: 160, right: 160}; /* required for popover positioning */
 		MAPJS.DOMRender.stageMargin = {top: 20, bottom: 20, left: 170, right: 170}; /* required for popover positioning */
 		initWidgets();

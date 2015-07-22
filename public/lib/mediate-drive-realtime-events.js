@@ -62,7 +62,7 @@ MM2.mediateDriveRealtimeEvents = function (driveFileId, mm2CollaborationModel, e
 			onContentEventAdded = function (valuesAddedEvent) {
 				if (!valuesAddedEvent.isLocal) {
 					valuesAddedEvent.values.forEach(function (contentEvent) {
-						mm2CollaborationModel.triggerContentEvent(contentEvent, valuesAddedEvent.sessionId);
+						mm2CollaborationModel.triggerRemoteContentEvent(contentEvent, valuesAddedEvent.sessionId);
 					});
 				}
 			},

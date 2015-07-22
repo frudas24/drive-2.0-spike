@@ -16,9 +16,11 @@ Questions to explore:
   * ~~eg timeout and show a sensible message~~
 * can we enable people to self-service major support topics?
   * ~~can we log in the correct user when file is opened from drive?~~
-  * can we detect third-party extensions blocking access to drive and offer some more meaningful error messages?
-    * disconnect
-    * ABP
+  * ~~can we detect third-party extensions blocking access to drive and offer some more meaningful error messages?~~
+    * ~~disconnect~~
+      * ~~seems to block google scripts, caught correctly by 'Sadly, Google Script loading failed'~~
+    * ~~ABP~~
+      * didn't block anything
   * can we show a total capacity warning when close to 10 MB?
     * [model.bytesUsed](https://developers.google.com/google-apps/realtime/reference/gapi.drive.realtime.Model) shows how much it's taking
     * can we compress somehow?
@@ -36,12 +38,13 @@ Questions to explore:
     * attachments
   * make sure exporting to local disk works by downloading images; make sure pdf/image exporters get resources 
 * can we replicate typical Docs API workflow?
-  * loading/creating files from the Drive UI - to avoid access privilege issues
+  * ~~loading/creating files from the Drive UI - to avoid access privilege issues~~
     * ~~create in the right folder~~
   * enable moving to a folder from within the app
   * ~~keep the folder/s when saving~~
-  * inherit sharing properties when created in a folder
+  * ~~inherit sharing properties when created in a folder~~
   * sharing from within the app
+  * can we detect remote file renames?
   * ~~can we use a single page instead of redirects from /gd, and use pushState to replace history when a file is created etc?~~
   * ~~rename file from the app (don't force the name to be the same as central node)~~
     * ~~ensure name is preserved when saving~~

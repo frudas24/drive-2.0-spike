@@ -8,7 +8,7 @@ configure do
   set :startup_drive_scopes, 'https://www.googleapis.com/auth/drive.install https://www.googleapis.com/auth/drive.file email profile'
 end
 get '/' do
-  erb :map_editor
+  erb :landing
 end
 get '/drive/install' do
   erb :drive_install

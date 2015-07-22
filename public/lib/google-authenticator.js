@@ -14,6 +14,9 @@ MM2.GoogleAuthenticatorService = function (config) {
 			self.getAuthToken = function () {
 				return authToken;
 			};
+			self.getUserId = function () {
+				return googleProfileResponse.id;
+			};
 		},
 		authorize = function (options) {
 			var fullOptions = _.extend({}, config, options),

@@ -1,0 +1,109 @@
+<style type="text/css">
+  .header {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    height: 30px;
+    background: silver;
+    border-bottom: 1px solid black;
+  }
+  body {
+    padding: 0;
+    margin: 0;
+  }
+  .filename {
+    font-size: 20px;
+    font-weight: bold;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-decoration: none;
+    color: black;
+    cursor: pointer;
+  }
+  .profile.email {
+    font-size: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    right: 0px;
+    position: absolute;
+    padding-right: 20px;
+  }
+  #manual-login {
+    right: 0px;
+    position: absolute;
+    padding-right: 20px;
+  }
+  .content {
+    margin-top: 50px;
+  }
+  .scripts-warning {
+    background: yellow;
+    border: 1px solid black;
+  }
+  .hidden {
+    display: none;
+  }
+</style>
+<%= erb :vendor_scripts %>
+<%= erb :own_scripts %>
+<div class="header">
+  <span class="profile">[]
+  </span>
+  <button role="login">Sign In With Google</button>
+</div>
+<div class="content">
+  <div class="scripts-warning hidden">
+    This web site requires access to Google Drive, but something is preventing us from loading files from Google Drive. This might be due to
+    a temporary network error, or your browser might contain a misconfigured ad blocking/privacy extension that prevents access to 
+    Google Drive. 
+  </div>
+  <h2>Get started:</h2>
+  <ul>
+    <li><a role="new-map" href="#">Create a new map</a></li>
+    <li><a href="https://drive.google.com/drive/search?q=type:application/vnd.google-apps.drive-sdk.<%=ENV['GOOGLE_APP_ID']%>">Open an existing map from Google Drive</a></li>
+    <li><a href="#">Import a MindMup or Freemind file</a></li>
+  </ul>
+</div>
+
+<script>
+window.addEventListener('MM:GoogleScriptsFailed', function () {
+ $('.scripts-warning').removeClass('hidden'); 
+});
+window.addEventListener('MM:GoogleScriptsLoaded', function () {
+  var authenticator = new MM2.GoogleAuthenticatorService({
+        client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', 
+        scope: '<%=settings.startup_drive_scopes%>',
+        'cookie_policy': 'single_host_origin'
+    }),
+    googleAppId = '<%=ENV['GOOGLE_APP_ID']%>',
+    googleDriveService = new MM2.GoogleDriveService(),
+    currentProfile,
+    updateProfile = function (profile) {
+      currentProfile = profile;
+      $('.profile').text(profile.getEmail());
+      $('[role=login]').text('Change');
+    },
+    showLogin = function () {
+      $('.profile').text('');
+      $('[role=login]').text('Sign in with Google');
+    },
+    newFromProfile = function (profile) {
+      window.location.replace('/drive/new?state='+ encodeURI(JSON.stringify({"folderId":"","action":"create","userId": profile.getUserId()})));
+    };
+  authenticator.backgroundAuthenticate().then(updateProfile, showLogin);
+  $('[role=login]').on('click', function() {
+    authenticator.modalAuthenticate().then(updateProfile, showLogin);
+  });
+  $('[role=new-map]').on('click', function () {
+      if (!currentProfile) {
+        authenticator.modalAuthenticate().then(newFromProfile);
+      } else {
+        newFromProfile(currentProfile);
+      }
+  });
+});
+</script>
+<%= erb :google_load_scripts %>
+</body>
+
+</html>

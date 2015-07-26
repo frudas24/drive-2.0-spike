@@ -6,6 +6,7 @@ configure do
   set :script_loading_timeout, ENV['SCRIPT_LOADING_TIMEOUT'] || 5000
   set :public_url, ENV['PUBLIC_URL'] || "/"
   set :startup_drive_scopes, 'https://www.googleapis.com/auth/drive.install https://www.googleapis.com/auth/drive.file email profile'
+  set :image_selector_drive_scopes, 'https://www.googleapis.com/auth/drive.install https://www.googleapis.com/auth/drive.file email profile https://www.googleapis.com/auth/photos.upload'
 end
 get '/' do
   erb :landing

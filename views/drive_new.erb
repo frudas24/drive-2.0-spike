@@ -39,6 +39,7 @@
     padding-right: 20px;
   }
   #container {
+    position:absolute;
     background-color: #FFFFFF;
     height: 100%;
     width: 100%;
@@ -47,6 +48,17 @@
     -ms-user-select: none;
     margin:0;
     padding:0;
+  }
+  .modal {
+    position: absolute;
+    top: 30%;
+    left: 30%;
+    width: 40%;
+    height: 40%;
+    background-color: yellow;
+    border: 2px solid black;
+    display: none;
+    z-index: 9999;
   }
 </style>
 <div class="header">
@@ -65,6 +77,14 @@
 
 <div id="container">
 </div>
+<div id="icon_editor" class="modal">
+  <div role="auth">
+    <h2>Can we list your Google Photos?</h2>
+    <p> MindMup allows users to insert images and pictures from their Google Photos storage.  Google did not automatically allow this for your account, so please click <b>Allow</b> 
+    to open a Google Drive authorisation window and approve access.</p>
+    <button role="approve">Approve</button>
+  </div>
+</div>
 <%= erb :vendor_scripts %>
 <%= erb :own_scripts %>
 
@@ -75,14 +95,19 @@ var setStatus = function (statusMsg) {
   },
   defaultTitle = 'all new untitled mind map',
   filePathPrefix = '/drive/file/',
-  initialContent = {id: 1, title: defaultTitle},
-  mm2CollaborationModel = new MM2.CollaborationModel(initialContent),
-  activeContentListener = new MM2.CollaborationModelActiveContentListener(mm2CollaborationModel),
-  authenticator = new MM2.GoogleAuthenticatorService({
+  minimalAuthenticatorConfig = {
       client_id:'<%=ENV['GOOGLE_OAUTH_CLIENT_ID']%>', 
       scope: '<%=settings.startup_drive_scopes%>',
       'cookie_policy': 'single_host_origin'
+  },
+  imageSelectorAuthenticatorConfig = _.extend({}, minimalAuthenticatorConfig, {
+      scope: '<%=settings.image_selector_drive_scopes%>'
   }),
+  initialContent = {id: 1, title: defaultTitle},
+  mm2CollaborationModel = new MM2.CollaborationModel(initialContent),
+  activeContentListener = new MM2.CollaborationModelActiveContentListener(mm2CollaborationModel),
+  authenticator = new MM2.GoogleAuthenticatorService(minimalAuthenticatorConfig),
+  imageSelectorAuthenticator = new MM2.GoogleAuthenticatorService(imageSelectorAuthenticatorConfig),
   googleAppId = '<%=ENV['GOOGLE_APP_ID']%>',
   googleDriveService = new MM2.GoogleDriveService(),
   googleDrivePageController = new MM2.GoogleDrivePageController (defaultTitle, filePathPrefix, authenticator, googleDriveService, googleAppId);
@@ -114,6 +139,7 @@ var setStatus = function (statusMsg) {
   initWidgets = function () {
     var container = jQuery('#container');
     container.domMapWidget(activityLog, mapModel, isTouch, imageInsertController, container, _.identity);
+    jQuery('#icon_editor').googlePhotosIconEditor(mapModel, imageSelectorAuthenticator, googleAppId);
 	},
 	handleDriveRealtimeErrors = function(error) {
 		if (error === 'token-refresh-required') {

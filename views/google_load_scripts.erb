@@ -1,7 +1,7 @@
 <script>
   window.initGoogleAPI = function () {
     if (!gapi.drive || !gapi.drive.realtime) {
-      gapi.load('auth,drive-realtime,drive-share', initGoogleAPI);
+      gapi.load('auth,drive-realtime,drive-share,picker', initGoogleAPI);
       return;
     } 
     window.clearTimeout(googleScriptLoadingTimeout);

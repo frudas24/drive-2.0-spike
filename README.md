@@ -28,15 +28,17 @@ Questions to explore:
     * document.saveDelay is the timer to watch?
   * can we show a warning when read-only?
       * https://developers.google.com/google-apps/realtime/collaborators - read-only mode
-  * can we store images on drive to avoid message size problems and remove capacity problems?
-      * maybe use thumbmnails from the hangouts spike?
-      * how does this work with exporters? can we grab them locally via CORS?
+  * ~~can we store images on drive to avoid message size problems and remove capacity problems?~~
+    * ~~maybe use thumbmnails from the hangouts spike?~~
+    * ~~how does this work with exporters? can we grab them locally via CORS?~~
+      * ~~ajax CORS seems to work for picasa thumbs, so we can pull them locally if we need to export~~
   * can we forward people to a 'request access' page when they don't have access?
 * can we seamlessly migrate from physical map files to shortcuts for auto-saving?
   * what happens with drive-stored resources?
     * images
     * attachments
   * make sure exporting to local disk works by downloading images; make sure pdf/image exporters get resources 
+  * what happens when importing existing files? how do we upload to drive/picasa - seems CORS broken for background uploads?
 * can we replicate typical Docs API workflow?
   * ~~loading/creating files from the Drive UI - to avoid access privilege issues~~
     * ~~create in the right folder~~
@@ -58,7 +60,7 @@ Questions to explore:
   * images are photos from google drive photos?
   * keep required auth to a minimum
   * transparently validate gold accounts from logged in e-mail and hd (especially hd)
-  * upload thumbnail periodically/allow it to generate a preview
+  * ~~upload thumbnail periodically/allow it to generate a preview~~
 * can we offer admins more control over what is used if app is installed in a domain
   * disable/enable gold services globally
   * log on to gold for the entire domain

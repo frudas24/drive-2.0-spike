@@ -31,6 +31,25 @@ MM2.GoogleDriveService = function () {
 			dataType: 'json'
 		});
 	};
+	self.uploadThumbnail = function (fileId, dataUri) {
+		/* TODO: make this work by reading the data URI mime type */
+		var base64EncodeUrl = function (str) {
+				return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
+			},
+			metadata = {
+				thumbnail: {image: base64EncodeUrl(dataUri.substring(22)), mimeType: 'image/png'}
+			};
+		return jQuery.ajax({
+			type: 'PATCH',
+			url: baseUrl + 'files/' + fileId,
+			headers: {
+				'Authorization': 'Bearer ' + currentToken(),
+				'Content-Type': 'application/json'
+			},
+			dataType: 'json',
+			data: JSON.stringify(metadata)
+		});
+	};
 	self.renameFile = function (fileId, newName) {
 		var metadata = {
 			'title': newName

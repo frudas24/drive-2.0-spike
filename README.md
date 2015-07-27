@@ -63,7 +63,11 @@ Questions to explore:
   * ~~upload thumbnail periodically/allow it to generate a preview~~
 * can we offer admins more control over what is used if app is installed in a domain
   * disable/enable gold services globally
+    * [check if user is admin](https://developers.google.com/admin-sdk/directory/v1/guides/authorizing)
   * log on to gold for the entire domain
+  * [make it easier to integrate](https://developers.google.com/apps-marketplace/button)
+  * make it easier for users to discover: [universal navigation extension](https://developers.google.com/apps-marketplace/preparing)
+  * make it easier to subscribe: [use integrated billing](https://developer.chrome.com/webstore/money)
 * what is the absolute minimum scope for drive api authorisation that we need to use for GAM?
   * can we progressively build up with messages for individual usage patterns if not GAM?
     * eg not ask for photo access unless users try to embed photos

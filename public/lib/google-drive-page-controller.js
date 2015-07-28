@@ -51,7 +51,13 @@ MM2.GoogleDrivePageController = function (defaultTitle, filePathPrefix, authenti
 							window.history.replaceState({}, fileMeta.title, filePathPrefix + fileId);
 							promise.resolve(fileId, fileMeta.title, userProfile);
 						}
-					}, promise.reject);
+					}, function (jqXHR) {
+						if (jqXHR.status === 404) {
+							window.location.redirect('https://drive.google.com/a/mindmup.com/file/d/' + fileId + '/view');
+						} else {
+							promise.reject('network-error');
+						}
+					});
 				},
 				postLogin = function (userProfile) {
 					if (driveState.action === 'create') {

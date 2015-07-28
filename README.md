@@ -36,9 +36,11 @@ Questions to explore:
 * can we seamlessly migrate from physical map files to shortcuts for auto-saving?
   * what happens with drive-stored resources?
     * images
-    * attachments
+    * ~~attachments~~
   * make sure exporting to local disk works by downloading images; make sure pdf/image exporters get resources 
   * what happens when importing existing files? how do we upload to drive/picasa - seems CORS broken for background uploads?
+    * option 1: upload from the server, picasa API will work (may require additional scopes)
+    * option 2: test if initial model setup allows > 500KB, perhaps just keep the resources there if < 10MB
 * can we replicate typical Docs API workflow?
   * ~~loading/creating files from the Drive UI - to avoid access privilege issues~~
     * ~~create in the right folder~~
@@ -56,9 +58,9 @@ Questions to explore:
 * can we work in a meaningful way with completely public/read maps
   * ideally not ask clients to even log in
 * can we offer more meaningful drive integration
-  * attachments are files on drive?
-  * images are photos from google drive photos?
-  * keep required auth to a minimum
+  * ~~attachments are files on drive?~~
+  * ~~images are photos from google drive photos?~~
+  * ~~keep required auth to a minimum~~
   * transparently validate gold accounts from logged in e-mail and hd (especially hd)
   * ~~upload thumbnail periodically/allow it to generate a preview~~
 * can we offer admins more control over what is used if app is installed in a domain

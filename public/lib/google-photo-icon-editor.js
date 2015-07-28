@@ -1,6 +1,6 @@
 /*global jQuery, google, _*/
 
-jQuery.fn.googlePhotosIconEditor = function (mapModel, authenticator, googleAppId) {
+jQuery.fn.googlePhotosIconEditor = function (mapModel, authenticator) {
 	'use strict';
 	/*TODO: Support editing existing icon dimensions etc,
 	 * pass USER_ID to be able to log in the correct user in a multi-user scenario
@@ -16,7 +16,6 @@ jQuery.fn.googlePhotosIconEditor = function (mapModel, authenticator, googleAppI
 					picker = new google.picker.PickerBuilder()
 						.enableFeature(google.picker.Feature.SIMPLE_UPLOAD_ENABLED)
 						.disableFeature(google.picker.Feature.MULTISELECT_ENABLED)
-						.setAppId(googleAppId)
 						.addView(google.picker.ViewId.PHOTOS)
 						.addView(google.picker.ViewId.PHOTO_UPLOAD)
 						.setSelectableMimeTypes('application/vnd.google-apps.photo,image/png,image/jpg,image/gif,image/jpeg')

@@ -87,6 +87,33 @@
     <button role="approve">Approve</button>
   </div>
 </div>
+
+
+<div id="attachment_editor" class="modal">
+  <div role="unsupported-format">
+			This node has an attachment in a format that cannot be edited directly, probably created using a 
+			different application. </p>
+			<p>Use the <b>Open</b> button to download the contents, and then upload them Google Drive, where you will be able to edit. You can
+			then use the <b>Change</b> button to connect the mind map node to the new version of the attachment.</p>
+  </div>
+  <div data-mm-attachment-info="name" class="details"><label>Name</label><span data-mm-attachment-info="name" ></span></div>
+  <div class="details"><label>Type</label><img data-mm-attachment-info="iconUrl">&nbsp;<span data-mm-attachment-info="type"></span></div>
+  <div data-mm-attachment-info="description" class="details"><label>Description</label><span data-mm-attachment-info="description"></span></div>
+  <div data-mm-attachment-info="embedUrl" class="embedDoc"><iframe data-mm-attachment-info="embedUrl"></iframe></div>
+  <div data-mm-attachment-info="thumbnail" class="details thumbnail"><img data-mm-attachment-info="thumbnail"/></div>          
+  <div role="auth">
+    <h2>Can we list your Google Drive files?</h2>
+    <p> MindMup allows users to attaches documents from Google Drive to mind map nodes.  Google did not automatically allow this for your account, so please click <b>Allow</b> 
+    to open a Google Drive authorisation window and approve access.</p>
+    <button role="approve">Approve</button>
+  </div>
+  <div>
+    <a tabindex="100" target="_blank" href="#" data-mm-attachment-info="url">Open</a>
+    <a tabindex="102" href="#" role="change">Change</a>
+    <a tabindex="105" href="#" role="close">Close</a>
+  </div>
+</div>
+
 <%= erb :vendor_scripts %>
 <%= erb :own_scripts %>
 
@@ -105,11 +132,15 @@ var setStatus = function (statusMsg) {
   imageSelectorAuthenticatorConfig = _.extend({}, minimalAuthenticatorConfig, {
       scope: '<%=settings.image_selector_drive_scopes%>'
   }),
+  attachmentEditorAuthenticatorConfig = _.extend({}, minimalAuthenticatorConfig, {
+      scope: '<%=settings.attachment_editor_drive_scopes%>'
+  }),
   initialContent = {id: 1, title: defaultTitle},
   mm2CollaborationModel = new MM2.CollaborationModel(initialContent),
   activeContentListener = new MM2.CollaborationModelActiveContentListener(mm2CollaborationModel),
   authenticator = new MM2.GoogleAuthenticatorService(minimalAuthenticatorConfig),
   imageSelectorAuthenticator = new MM2.GoogleAuthenticatorService(imageSelectorAuthenticatorConfig),
+  attachmentEditorAuthenticator = new MM2.GoogleAuthenticatorService(attachmentEditorAuthenticatorConfig),
   googleAppId = '<%=ENV['GOOGLE_APP_ID']%>',
   googleDriveService = new MM2.GoogleDriveService(),
   googleDrivePageController = new MM2.GoogleDrivePageController (defaultTitle, filePathPrefix, authenticator, googleDriveService, googleAppId);
@@ -141,7 +172,8 @@ var setStatus = function (statusMsg) {
   initWidgets = function () {
     var container = jQuery('#container');
     container.domMapWidget(activityLog, mapModel, isTouch, imageInsertController, container, _.identity);
-    jQuery('#icon_editor').googlePhotosIconEditor(mapModel, imageSelectorAuthenticator, googleAppId);
+    jQuery('#icon_editor').googlePhotosIconEditor(mapModel, imageSelectorAuthenticator);
+    jQuery('#attachment_editor').googleDriveAttachmentEditor(mapModel, attachmentEditorAuthenticator);
 	},
 	handleDriveRealtimeErrors = function(error) {
 		if (error === 'token-refresh-required') {

@@ -32,7 +32,8 @@ Questions to explore:
     * ~~maybe use thumbmnails from the hangouts spike?~~
     * ~~how does this work with exporters? can we grab them locally via CORS?~~
       * ~~ajax CORS seems to work for picasa thumbs, so we can pull them locally if we need to export~~
-  * can we forward people to a 'request access' page when they don't have access?
+  * ~~can we forward people to a 'request access' page when they don't have access?~~
+    * URL pattern: https://drive.google.com/a/mindmup.com/file/d/FILE_ID/view
 * can we seamlessly migrate from physical map files to shortcuts for auto-saving?
   * what happens with drive-stored resources?
     * images

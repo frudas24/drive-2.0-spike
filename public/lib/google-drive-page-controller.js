@@ -53,7 +53,7 @@ MM2.GoogleDrivePageController = function (defaultTitle, filePathPrefix, authenti
 						}
 					}, function (jqXHR) {
 						if (jqXHR.status === 404) {
-							window.location.redirect('https://drive.google.com/a/mindmup.com/file/d/' + fileId + '/view');
+							window.location.replace('https://drive.google.com/a/mindmup.com/file/d/' + fileId + '/view');
 						} else {
 							promise.reject('network-error');
 						}
